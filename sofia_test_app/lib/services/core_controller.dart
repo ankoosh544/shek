@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:sofia_test_app/enums/ble_device_type.dart';
 import 'package:sofia_test_app/enums/direction.dart';
@@ -52,31 +53,103 @@ class CoreController implements ICoreController {
 
   bool isStarted = false;
 
+//isInForeground
+  bool? _isInForeground = false;
   @override
-  bool? isInForeground = false;
-  @override
-  List<BLEDevice>? devices;
-  @override
-  BLEDevice? car;
-  @override
-  BLEDevice? nearestDevice;
-  @override
-  User? loggerUser;
-  //IDataLoggerService dataLogger = dataloggerService;
-  @override
-  OperationMode? operationMode = OperationMode.idle;
-  @override
-  bool? outOfService = false;
-  @override
-  bool? presenceOfLight = true;
-  @override
-  String? carFloor = "--";
-  @override
-  Direction? get carDirection => Direction.stopped;
+  bool? get isInForeground => _isInForeground;
 
   @override
-  set carDirection(Direction? direction) {
-    carDirection = direction;
+  set isInForeground(bool? value) {
+    _isInForeground = value;
+  }
+
+//////
+  List<BLEDevice>? _devices;
+  @override
+  List<BLEDevice> get devices => resolver?.devices ?? [];
+  @override
+  set devices(List<BLEDevice>? value) {
+    _devices = value;
+  }
+
+  BLEDevice? _car;
+  @override
+  BLEDevice? get car {
+    final currentDevices = devices;
+    if (currentDevices != null) {
+      return findCar(currentDevices);
+    }
+    return null;
+  }
+
+  @override
+  set car(BLEDevice? value) {
+    _car = value;
+  }
+
+  BLEDevice? _nearestDevice;
+  @override
+  BLEDevice? get nearestDevice => resolver?.nearestDevice;
+  @override
+  set nearestDevice(BLEDevice? value) {
+    _nearestDevice = value;
+  }
+
+//loggerUser
+  User? _loggerUser;
+  @override
+  User? get loggerUser => _loggerUser;
+  @override
+  set loggerUser(User? value) {
+    _loggerUser = value;
+  }
+
+  IDataLoggerService get dataLogger => dataloggerService;
+
+  OperationMode? _operationMode;
+
+  @override
+  OperationMode? get operationMode => _operationMode;
+  @override
+  set operationMode(OperationMode? value) {
+    _operationMode = value;
+  }
+
+  bool? _outOfService = false;
+
+  @override
+  bool? get outOfService => _outOfService;
+
+  @override
+  set outOfService(bool? value) {
+    _outOfService = value;
+  }
+
+  bool? _presenceOfLight = true;
+
+  @override
+  bool? get presenceOfLight => _presenceOfLight;
+  @override
+  set presenceOfLight(bool? value) {
+    _presenceOfLight = value;
+  }
+
+  String? _carFloor = "--";
+
+  @override
+  String? get carFloor => _carFloor;
+
+  @override
+  set carFloor(String? value) {
+    _carFloor = value;
+  }
+
+  Direction? _carDirection = Direction.stopped;
+
+  Direction? get carDirection => _carDirection;
+
+  set carDirection(Direction? value) {
+    _carDirection = value;
   }
 
   @override
@@ -87,12 +160,12 @@ class CoreController implements ICoreController {
     missionStatus = status;
   }
 
-  int? eta = -1;
-
-  void initializeDevices() {
-    devices = resolver.devices;
-    nearestDevice = resolver.nearestDevice;
-    car = devices != null ? findCar(devices!) : null;
+  int? _eta = -1;
+  @override
+  int? get eta => _eta;
+  @override
+  set eta(int? value) {
+    _eta = value;
   }
 
   CoreController() {
@@ -103,7 +176,9 @@ class CoreController implements ICoreController {
     audioService = GetIt.instance<IAudioService>();
     dataloggerService = GetIt.instance<IDataLoggerService>();
 
-    initializeDevices();
+    notificationManager.notificationReceived.listen((notification) {
+      NotificationManager_NotificationReceived;
+    });
 
     bleService.onSampleReceived.listen((sample) {
       BleService_OnSampleReceived(sample);
@@ -120,6 +195,7 @@ class CoreController implements ICoreController {
     bleService.timer1msTickk();
 
     Characteristics.add(FLOOR_CHANGE_CHARACTERISTIC_GUID);
+    Characteristics.add(ESP_EXAMPLE_CHARACTERTISTIC_GUID);
     Characteristics.add(MISSION_STATUS_CHARACTERISTIC_GUID);
     Characteristics.add(OUT_OF_SERVICE_CHARACTERISTIC_GUID);
     //Characteristics.add(MOVEMENT_DIRECTION_CAR);
@@ -127,16 +203,17 @@ class CoreController implements ICoreController {
     // Other initialization or event listeners can be added here as needed
   }
 
-  // void NotificationManager_NotificationReceived(Object sender, e) async {
-  //   if (await authService.isLoggedAsync()) {
-  //     //await Shell.current.goToAsync('//CommandPage');
-  //   } else {
-  //     //await Shell.current.goToAsync('//LoginPage');
-  //   }
-  // }
+  void NotificationManager_NotificationReceived(
+      dynamic sender, BuildContext context) async {
+    if (await authService.isLoggedAsync()) {
+      await Navigator.pushReplacementNamed(context, "/commandPage");
+    } else {
+      await Navigator.pushReplacementNamed(context, "/loginPage");
+    }
+  }
 
   void BleService_OnSampleReceived(BLESample sample) {
-    // dataloggerService.addSample(sample);
+    dataloggerService.addSample(sample);
     resolver.addSample(sample);
   }
 
@@ -405,7 +482,7 @@ class CoreController implements ICoreController {
       bleService.onCharacteristicUpdated.listen((event) {});
 
       await bleService.stopCharacteristicWatchAsync(
-          IBleService.ESP_SERVICE_GUID, FLOOR_CHANGE_CHARACTERISTIC_GUID);
+          IBleService.ESP_SERVICE_GUID, ESP_EXAMPLE_CHARACTERTISTIC_GUID);
       await bleService.stopCharacteristicWatchAsync(
           IBleService.ESP_SERVICE_GUID, MISSION_STATUS_CHARACTERISTIC_GUID);
 
@@ -443,7 +520,8 @@ class CoreController implements ICoreController {
 
   void emitNotifications(BLEDevice device) {
     if (isFloor(device)) {
-      print("==============Coming to emitNotification=====================");
+      print(
+          "==============Coming to emitNotification=====================$device");
       final bool foreground = isInForeground ?? false;
 
       if (!foreground) {
@@ -472,7 +550,7 @@ class CoreController implements ICoreController {
         try {
           await bleService.getValueFromCharacteristicGuid(
             IBleService.ESP_SERVICE_GUID,
-            FLOOR_CHANGE_CHARACTERISTIC_GUID,
+            ESP_EXAMPLE_CHARACTERTISTIC_GUID,
           );
         } catch (ex) {
           return;
@@ -545,7 +623,7 @@ class CoreController implements ICoreController {
       Object sender, BLECharacteristicEventArgs e) {
     try {
       switch (e.characteristicGuid) {
-        case FLOOR_CHANGE_CHARACTERISTIC_GUID:
+        case ESP_EXAMPLE_CHARACTERTISTIC_GUID:
           try {
             carFloor = ((e.value?[0]) ?? 0 & 0x3F).toString();
             if (((e.value?[0]) ?? 0 & 0x40) == 0x40) {

@@ -15,9 +15,6 @@ import 'package:sofia_test_app/models/BLEDevice.dart';
 import 'package:sofia_test_app/models/BLESample.dart';
 import 'package:sofia_test_app/models/user.dart';
 
-
-
-
 class CoreController implements ICoreController {
   EventEmitter _eventEmitter = EventEmitter();
   // Constants
@@ -47,10 +44,10 @@ class CoreController implements ICoreController {
 
   late IAuthService authService;
   late IBleService bleService;
- // late INotificationManager notificationManager;
+  // late INotificationManager notificationManager;
   late INearestDeviceResolver resolver;
- // late IAudioService audioService;
- // late IDataLoggerService dataloggerService;
+  // late IAudioService audioService;
+  // late IDataLoggerService dataloggerService;
 
   bool isStarted = false;
 
@@ -64,38 +61,38 @@ class CoreController implements ICoreController {
   bool? outOfService = false;
   bool? presenceOfLight = true;
   String? carFloor = "--";
-   @override
+  @override
   Direction? get carDirection => Direction.stopped;
 
   @override
   set carDirection(Direction? direction) {
     carDirection = direction;
   }
-@override
-  TypeMissionStatus? get missionStatus => TypeMissionStatus.MISSION_NO_INIT;
 
+  @override
+  TypeMissionStatus? get missionStatus => TypeMissionStatus.MISSION_NO_INIT;
 
   @override
   set missionStatus(TypeMissionStatus? status) {
     missionStatus = status;
   }
+
   int? eta = -1;
 
-   void initializeDevices() {
-  devices = resolver?.devices;
-  nearestDevice = resolver.nearestDevice;
-  car = devices != null ? findCar(devices!) : null;
-}
+  void initializeDevices() {
+    devices = resolver?.devices;
+    nearestDevice = resolver.nearestDevice;
+    car = devices != null ? findCar(devices!) : null;
+  }
 
   CoreController() {
-
     // _eventEmitter = EventEmitter();
     authService = GetIt.instance.get<IAuthService>();
     bleService = GetIt.instance.get<IBleService>();
-   // notificationManager = GetIt.instance.get<INotificationManager>();
+    // notificationManager = GetIt.instance.get<INotificationManager>();
     resolver = GetIt.instance.get<INearestDeviceResolver>();
-   // audioService = GetIt.instance.get<IAudioService>();
-   // dataloggerService = GetIt.instance.get<IDataLoggerService>();
+    // audioService = GetIt.instance.get<IAudioService>();
+    // dataloggerService = GetIt.instance.get<IDataLoggerService>();
 
     // notificationManager.notificationReceived.listen((notification) {
     //   // NotificationManager_NotificationReceived(notification);
@@ -106,14 +103,14 @@ class CoreController implements ICoreController {
     bleService.onDeviceDisconnected.listen((device) {
       BleService_OnDeviceDisconnected();
     });
-   resolver.onNearestDeviceChanged.listen((nearestDevice) {
-  print("===================================Nearest");
-  Resolver_NearestDeviceChanged(nearestDevice);
-});
-
+    resolver.onNearestDeviceChanged.listen((nearestDevice) {
+      print("===================================Nearest");
+      Resolver_NearestDeviceChanged(nearestDevice);
+    });
 
     bleService.timer1msTickk();
     Characteristics.add(FLOOR_CHANGE_CHARACTERISTIC_GUID);
+    Characteristics.add(ESP_EXAMPLE_CHARACTERTISTIC_GUID);
     Characteristics.add(MISSION_STATUS_CHARACTERISTIC_GUID);
     Characteristics.add(OUT_OF_SERVICE_CHARACTERISTIC_GUID);
     //Characteristics.add(MOVEMENT_DIRECTION_CAR);
@@ -128,7 +125,7 @@ class CoreController implements ICoreController {
   // }
 
   void BleService_OnSampleReceived(dynamic sender, BLESample sample) {
-   // dataloggerService.addSample(sample);
+    // dataloggerService.addSample(sample);
     resolver.addSample(sample);
   }
 
@@ -166,10 +163,10 @@ class CoreController implements ICoreController {
     }
 
     if (ConnessioneInCorso) {
-       print("====================================Device is ConnessioneInCorso");
+      print("====================================Device is ConnessioneInCorso");
       return;
     }
-  print("====================================Device check");
+    print("====================================Device check");
     ConnessioneInCorso = true;
     await connectDeviceAndRead(device);
     if (device != null) {
@@ -177,8 +174,8 @@ class CoreController implements ICoreController {
     }
 
     if (_nearestDeviceController.hasListener) {
-  _nearestDeviceController.add(device);
-}
+      _nearestDeviceController.add(device);
+    }
 
     if (operationMode == OperationMode.changeFloorMission) {
       if (bleService.connectedDeviceId.isNotEmpty) {
@@ -193,20 +190,26 @@ class CoreController implements ICoreController {
   }
 
 //events
-StreamController<BLEDevice> _nearestDeviceController = StreamController<BLEDevice>.broadcast();
-  StreamController<String> _floorController = StreamController<String>.broadcast();
-  StreamController<void> _missionStatusController = StreamController<void>.broadcast();
-  StreamController<void> _characteristicUpdatedController = StreamController<void>.broadcast();
-  StreamController<void> _deviceDisconnectedController = StreamController<void>.broadcast();
+  StreamController<BLEDevice> _nearestDeviceController =
+      StreamController<BLEDevice>.broadcast();
+  StreamController<String> _floorController =
+      StreamController<String>.broadcast();
+  StreamController<void> _missionStatusController =
+      StreamController<void>.broadcast();
+  StreamController<void> _characteristicUpdatedController =
+      StreamController<void>.broadcast();
+  StreamController<void> _deviceDisconnectedController =
+      StreamController<void>.broadcast();
 
-  Stream<BLEDevice> get onNearestDeviceChanged => _nearestDeviceController.stream;
+  Stream<BLEDevice> get onNearestDeviceChanged =>
+      _nearestDeviceController.stream;
   Stream<String> get onFloorChanged => _floorController.stream;
   Stream<void> get onMissionStatusChanged => _missionStatusController.stream;
-  Stream<void> get onCharacteristicUpdated => _characteristicUpdatedController.stream;
+  Stream<void> get onCharacteristicUpdated =>
+      _characteristicUpdatedController.stream;
   Stream<void> get onDeviceDisconnected => _deviceDisconnectedController.stream;
 
-
-void dispose() {
+  void dispose() {
     _nearestDeviceController.close();
     _floorController.close();
     _missionStatusController.close();
@@ -223,11 +226,8 @@ void dispose() {
 
   // Event handlers
   void bleService_OnDeviceDisconnected() {
-    
     try {
-      onDeviceDisconnected?.listen((event) {
-
-      });
+      onDeviceDisconnected?.listen((event) {});
     } catch (ex, stackTrace) {
       // if (Preferences.getBool('DevOptions') == true) {
       //   showDialog(
@@ -269,7 +269,7 @@ void dispose() {
   @override
   Future<void> startScanningAsync() async {
     isStarted = true;
-   // notificationManager.initialize();
+    // notificationManager.initialize();
     operationMode = OperationMode.deviceScanning;
 
     Timer.periodic(Duration(milliseconds: REFRESH_TIMEOUT), (timer) {
@@ -390,7 +390,7 @@ void dispose() {
       bleService.onCharacteristicUpdated.listen((event) {});
 
       await bleService.stopCharacteristicWatchAsync(
-          IBleService.ESP_SERVICE_GUID, FLOOR_CHANGE_CHARACTERISTIC_GUID);
+          IBleService.ESP_SERVICE_GUID, ESP_EXAMPLE_CHARACTERTISTIC_GUID);
       await bleService.stopCharacteristicWatchAsync(
           IBleService.ESP_SERVICE_GUID, MISSION_STATUS_CHARACTERISTIC_GUID);
 
@@ -423,7 +423,7 @@ void dispose() {
   }
 
   bool isFloor(BLEDevice device) {
-    return device != null && device.type == BleDeviceType.Esp32;
+    return device != null && device.type == BleDeviceType.esp32;
   }
 
   void emitNotifications(BLEDevice device) {
@@ -464,7 +464,7 @@ void dispose() {
         try {
           await bleService.getValueFromCharacteristicGuid(
             IBleService.ESP_SERVICE_GUID,
-            FLOOR_CHANGE_CHARACTERISTIC_GUID,
+            ESP_EXAMPLE_CHARACTERTISTIC_GUID,
           );
         } catch (ex) {
           return;
@@ -502,8 +502,8 @@ void dispose() {
           if (nearestDevice!.isAlive == true) {
             // await bleService.getValueFromCharacteristicGuid(
             //     IBleService.FLOOR_SERVICE_GUID, characteristic);
-            await bleService.getValueFromCharacteristicGuid(IBleService.ESP_SERVICE_GUID, characteristic);
-
+            await bleService.getValueFromCharacteristicGuid(
+                IBleService.ESP_SERVICE_GUID, characteristic);
           }
         }
         BLECharacteristicEventArgs bl = BLECharacteristicEventArgs(
@@ -537,7 +537,7 @@ void dispose() {
       Object sender, BLECharacteristicEventArgs e) {
     try {
       switch (e.characteristicGuid) {
-        case FLOOR_CHANGE_CHARACTERISTIC_GUID:
+        case ESP_EXAMPLE_CHARACTERTISTIC_GUID:
           try {
             carFloor = ((e.value?[0]) ?? 0 & 0x3F).toString();
             if (((e.value?[0]) ?? 0 & 0x40) == 0x40) {
@@ -684,32 +684,23 @@ void dispose() {
     _eventEmitter.emit('deviceDisconnected', []);
   }
 
+//new code
+  BLEDevice? findCar(List<BLEDevice> devices) {
+    BLEDevice? carDevice;
 
+    try {
+      carDevice = devices.firstWhere((d) => d.type == BleDeviceType.car);
 
+      bool isNear = carDevice.avgRxPower != null &&
+          carDevice.avgRxPower! > MIN_CAR_RX_POWER;
 
-
-//new code 
-BLEDevice? findCar(List<BLEDevice> devices) {
-  BLEDevice? carDevice;
-  
-  try {
-    carDevice = devices.firstWhere((d) => d.type == BleDeviceType.car);
-    
-    bool isNear = carDevice.avgRxPower != null && carDevice.avgRxPower! > MIN_CAR_RX_POWER;
-    
-    if (!isNear) {
+      if (!isNear) {
+        carDevice = null;
+      }
+    } catch (e) {
       carDevice = null;
     }
-  } catch (e) {
-    carDevice = null;
+
+    return carDevice;
   }
-  
-  return carDevice;
-}
-
-
-
-
-
-
 }

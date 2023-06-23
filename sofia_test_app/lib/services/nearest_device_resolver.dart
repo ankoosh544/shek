@@ -36,11 +36,8 @@ class NearestDeviceResolver implements INearestDeviceResolver {
 
   @override
   void addSample(BLESample sample) {
-    print("coming to addSample method and going to findDevice======= $sample");
     var device = findDevice(sample);
-
     device.samples.enqueue(sample);
-
     refreshNearestDevice(sample.timestamp);
   }
 
@@ -53,15 +50,10 @@ class NearestDeviceResolver implements INearestDeviceResolver {
     var lastTs = currentNearestDevice != null
         ? currentNearestDevice.lastSampleTimestamp!
         : timestamp;
-
-    print(
-        "=================current nearest device=====================$currentNearestDevice");
     if (currentNearestDevice != tmpNearestDevice) {
       nearestDeviceAssignTimestamp = lastTs;
       isRaised = false;
       tmpNearestDevice = currentNearestDevice;
-
-      print("tmp nearest device==============$tmpNearestDevice");
     }
 
     if (isTimeToFireEvent(lastTs)) {
@@ -156,8 +148,6 @@ class NearestDeviceResolver implements INearestDeviceResolver {
   }
 
   void fireEvent() {
-    print("==============NearestDevice infireEvent fun=========$nearestDevice");
-
     onNearestDeviceChangedNotifier.value = nearestDevice;
     _onNearestDeviceChanged.add(nearestDevice!);
   }

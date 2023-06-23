@@ -1,28 +1,11 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'
-    show
-        AndroidFlutterLocalNotificationsPlugin,
-        AndroidInitializationSettings,
-        AndroidNotificationDetails,
-        DateTimeComponents,
-        FlutterLocalNotificationsPlugin,
-        Importance,
-        InitializationSettings,
-        NotificationAppLaunchDetails,
-        NotificationDetails,
-        Priority,
-        RawResourceAndroidNotificationSound,
-        ReceivedNotification,
-        TZDateTime,
-        UILocalNotificationDateInterpretation,
-        tz;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
 import 'package:rxdart/subjects.dart';
 import 'package:sofia_test_app/interfaces/i_notification_manager.dart';
-
-import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 
 class NotificationManager implements INotificationManager {
   final String channelId = 'default';
@@ -40,27 +23,15 @@ class NotificationManager implements INotificationManager {
   }
 
   @override
-  void initialize() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('app_icon');
-    final InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
-
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-    flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
-    final NotificationAppLaunchDetails? notificationAppLaunchDetails =
-        await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
-    if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
-      final payload = notificationAppLaunchDetails!.payload;
-      if (payload != null) {
-        final title = payload.split('\n')[0];
-        final body = payload.split('\n')[1];
-        receiveNotification(title, body);
-      }
-    }
+  void initialize() {
+    var initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    var initializationSettings = InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+    flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+    );
   }
 
   @override
@@ -125,3 +96,26 @@ class NotificationManager implements INotificationManager {
   @override
   Stream<void> get notificationReceived => _notificationReceivedSubject.stream;
 }
+
+// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+// import 'package:sofia_test_app/interfaces/i_notification_manager.dart';
+
+// class NotificationManager implements INotificationManager {
+//   final String channelId = 'default';
+//   final String channelName = 'Default';
+//   final String channelDescription = 'The default channel for notifications.';
+
+//   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+//       FlutterLocalNotificationsPlugin();
+
+//   void initializeNotifications() {
+//     var initializationSettingsAndroid =
+//         AndroidInitializationSettings('@mipmap/ic_launcher');
+//     var initializationSettings = InitializationSettings(
+//       android: initializationSettingsAndroid,
+//     );
+//     flutterLocalNotificationsPlugin.initialize(
+//       initializationSettings,
+//     );
+//   }
+// }

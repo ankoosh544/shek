@@ -319,7 +319,7 @@ class _TestPageState extends State<TestPage> {
           ),
           SizedBox(height: 8),
           Text(
-            "Nearest is: ${coreController.devices!.first.toString() ?? 'Not available'}",
+            "Nearest is: ${coreController.nearestDevice.toString() ?? 'Not available'}",
             style: TextStyle(fontSize: 16),
           ),
           SizedBox(height: 16),

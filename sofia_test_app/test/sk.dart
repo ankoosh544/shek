@@ -1,149 +1,225 @@
-//  private async void Refresh()
-//         {
-            
+// import 'dart:async';
+// import 'dart:developer';
+// import 'package:flutter/material.dart';
+// import 'package:flutter/services.dart';
+// import 'package:flutter/widgets.dart';
+// import 'package:get_it/get_it.dart';
+// import 'package:sofia_test_app/enums/direction.dart';
+// import 'package:sofia_test_app/interfaces/i_core_controller.dart';
+// import 'package:sofia_test_app/interfaces/i_nearest_device_service.dart';
 
-//             // recupero piano di destinazione frequente
-//             string targetFloor = "";
+// class StatusPage extends StatefulWidget {
+//   final int currentFloor;
+//   final int targetFloor;
 
-            
+//   StatusPage({required this.currentFloor, required this.targetFloor});
 
-//             if (this.coreController.Devices.Count == 0)
-//             {
-//                 Device.BeginInvokeOnMainThread(() =>
-//                 {
-//                     Wait.IsVisible = true;
-//                     GrigliaFromTo.IsVisible = false;
-                    
-                  
-//                 });
-//                 return;
-//             }
+//   @override
+//   _StatusPageState createState() => _StatusPageState();
+// }
 
-//             if (this.coreController.NearestDevice != null)
-//             {
-                
+// class _StatusPageState extends State<StatusPage> {
+//   INearestDeviceResolver? nearestDeviceResolver;
 
-//                 targetFloor = await GetTargetFloorAsync(this.coreController.NearestDevice.Alias);
+//   bool luceMancante = false;
+//   int intervalloMessaggioLuceAssente = 60; // in secondi
+//   late int tickAttuali; // memorizza il valore di tick corrente
+//   late int secondiPassati;
+//   bool primaConnessioneDevice = true;
 
-//                 Device.BeginInvokeOnMainThread(() =>
-//                 {
-//                     if (this.coreController.OutOfService == true)
-//                     {
-//                         Wait.IsVisible = false;
-//                         GrigliaFromTo.IsVisible = true;
-                        
-//                         // Debug.Print("************ Fuori servizio !!!! ***********");
-//                         //this.coreController.Get_Piano_Cabina();
-//                         TestoErrore.Text = Res.AppResources.ElevatorOutOfOrder;
-                        
-//                         if (coreController.CarDirection == Direction.Up )
-//                         {
-//                             PosizioneCabina.Text = String.Format(Res.AppResources.LocationCabinBetween,coreController.CarFloor, (coreController.CarFloorNum + 1).ToString());
-//                         }
-//                         else if(coreController.CarDirection == Direction.Down)
-//                         {
-//                             PosizioneCabina.Text = String.Format(Res.AppResources.LocationCabinBetween, coreController.CarFloor, (coreController.CarFloorNum - 1).ToString());
-//                         }
-//                         else if(coreController.CarDirection == Direction.Stopped)
-//                         {
-//                             PosizioneCabina.Text = Res.AppResources.LocationCabin + " " + coreController.CarFloor;
-//                         }
-//                         TestoErrore.IsVisible = true;
-//                         PosizioneCabina.IsVisible = true;
-//                     }
-//                     else
-//                     {
-//                         TestoErrore.IsVisible = false;
-//                         PosizioneCabina.IsVisible = false;
-//                     }
-//                 });
+//   static const int SECONDS_PER_FLOOR = 10;
+//   static const int POLLING_TIME = 1;
+//   static const int TOP_Y = -100;
+//   static const int BOTTOM_Y = 100;
 
+//   Direction? direction;
+//   late int currentPosition;
+//   late int stepsCount;
+//   late int stepHeight;
+//   late int eta;
 
-//             }
+//   ICoreController? coreController;
 
+//   int? currentFloor;
+//   int? targetFloor;
 
-//             if (LuceMancante == false)
-//             {
-//                 if (this.coreController.PresenceOfLight == false)
-//                 {
-//                     SecondiPassati = ((DateTime.Now.Ticks - tickAttuali) / TimeSpan.TicksPerSecond);
-//                     Debug.Print("secondi:");
-//                     Debug.Print(SecondiPassati.ToString());
-//                     if ((SecondiPassati > IntervalloMessaggioLuceAssente) || (PrimaConnessioneDevice == true))
-//                     {
-//                         PrimaConnessioneDevice = false;
-//                         Device.BeginInvokeOnMainThread(async () =>
-//                         {
-//                             this.TestoLuce.IsVisible = true;                           
+//   int? get currentFloorValue => currentFloor;
+//   set currentFloorValue(int? value) => currentFloor = value;
 
-//                             //await DisplayAlert("Info", Res.AppResources.AttentionLackOfLight, "Ok");
-                            
-//                         });
+//   int? get targetFloorValue => targetFloor;
+//   set targetFloorValue(int? value) => targetFloor = value;
 
-//                         // Debug.Print("************ Luce mancante !!!! ***********");
-//                         LuceMancante = true;
-//                         tickAttuali = DateTime.Now.Ticks;
-//                     }
-//                 }
-//             }
+//   @override
+//   void initState() {
+//     super.initState();
+//     nearestDeviceResolver = GetIt.instance<INearestDeviceResolver>();
+//     coreController = GetIt.instance<ICoreController>();
+//   }
 
-//             if (LuceMancante == true)
-//             {
-//                 if (this.coreController.PresenceOfLight == true)
-//                 {
-//                     LuceMancante = false;
-//                     Device.BeginInvokeOnMainThread(() =>
-//                     {
-//                         this.TestoLuce.IsVisible = false;
-//                     });
-//                     Debug.Print("************ Luce presente !!!! ***********");
-                    
-//                 }
-//             }
+//   @override
+//   void dispose() {
+//     super.dispose();
+//     stopWatch();
+//   }
 
+//   @override
+//   void didChangeDependencies() {
+//     super.didChangeDependencies();
+//     startMonitoring();
+//   }
 
-
-
-       
-//             Device.BeginInvokeOnMainThread(() =>
-//             {
-//                                    if (IsFloor(this.coreController.NearestDevice))
-//                                    {
-//                                        Wait.IsVisible = false;
-//                                        GrigliaFromTo.IsVisible = true;
-                                       
-//                                        if (this.coreController.NearestDevice.Alias != FloorPrecedente)
-//                                        {
-//                                            if (Device.RuntimePlatform == Device.iOS) 
-//                                            { 
-//                                                this.confirmButton.IsVisible = true; 
-//                                            }
-                                           
-//                                            this.welcomeLabel.Text = String.Format(Res.AppResources.WelcomeText, coreController.LoggerUser.Username, Environment.NewLine);                                           
-//                                            this.FromFloor.Text = Res.AppResources.From;
-//                                            this.ToFloor.Text = Res.AppResources.To;
-//                                            this.currentFloorLabel.Text = this.coreController.NearestDevice.Alias;
-//                                            this.confirmButton.IsEnabled = true;
-//                                            this.floorSelectorEntry.IsEnabled = true;
-//                                            this.floorSelectorEntry.Text = targetFloor;
-//                                            //this.floorSelectorEntry.Focus();
-//                                            FloorPrecedente = this.coreController.NearestDevice.Alias;
-//                                        }
-//                                        else
-//                                        {
-//                                            this.floorSelectorEntry.IsEnabled = true;
-//                                            //this.floorSelectorEntry.Focus();
-//                                            this.confirmButton.IsEnabled = true;
-//                                        }
-
-//                                    }
-//                                    else
-//                                    {
-//                                        Wait.IsVisible = true;
-//                                        GrigliaFromTo.IsVisible = false;
-                                    
-//                                    }
-//                                });
-
-            
+//   void startMonitoring() async {
+//     await Task.run(() {
+//       nearestDeviceResolver!.monitoraggioSoloPiano = false;
+//       coreController!.onFloorChanged.listen(coreController_OnFloorChanged);
+//       coreController!.onMissionStatusChanged
+//           .listen(coreController_OnMissionStatusChanged);
+//       coreController!.onCharacteristicUpdated
+//           .listen(coreController_OnCharacteristicUpdated);
+//       setState(() {
+//         eta = (widget.currentFloor - widget.targetFloor).abs() *
+//             SECONDS_PER_FLOOR;
+//         floor1Label.text = coreController!.carDirection == Direction.up
+//             ? '${widget.targetFloor}'
+//             : '${widget.currentFloor}';
+//         floor2Label.text = coreController!.carDirection == Direction.up
+//             ? '${widget.currentFloor}'
+//             : '${widget.targetFloor}';
+//         if (coreController!.carDirection != Direction.stopped) {
+//           directionIcon.image = AssetImage(
+//               coreController!.carDirection == Direction.up
+//                   ? 'assets/images/up.png'
+//                   : 'assets/images/down.png');
+//         } else {
+//           directionIcon.image = null;
 //         }
+//         elevatorIcon.transformation =
+//             Matrix4.translationValues(0, currentPosition.toDouble(), 0);
+//         targetLabel.text = 'ETA to floor ${widget.targetFloor}';
+//         int minuti = (eta ~/ 60) + 2;
+//         String tmp = 'Time Left $minuti ';
+//         if (minuti > 1) {
+//           tmp += 'Minutes';
+//         } else {
+//           tmp += 'Minute';
+//         }
+//         etaLabel.text = tmp;
+//       });
+//     });
+
+//     visualizzaEventi();
+//   }
+
+//   void visualizzaEventi() {
+//     try {
+//       if (!luceMancante) {
+//         if (!coreController!.presenceOfLight) {
+//           secondiPassati =
+//               ((DateTime.now().microsecondsSinceEpoch - tickAttuali) ~/
+//                   Duration.microsecondsPerSecond);
+//           log('secondi:');
+//           log(secondiPassati.toString());
+//           if (secondiPassati > intervalloMessaggioLuceAssente ||
+//               primaConnessioneDevice) {
+//             primaConnessioneDevice = false;
+//             showDialog(
+//               context: context,
+//               builder: (_) => AlertDialog(
+//                 title: const Text('Info'),
+//                 content: const Text('Attention: Lack of Light'),
+//                 actions: <Widget>[
+//                   TextButton(
+//                     onPressed: () => Navigator.pop(context),
+//                     child: const Text('OK'),
+//                   ),
+//                 ],
+//               ),
+//             );
+//             luceMancante = true;
+//             tickAttuali = DateTime.now().microsecondsSinceEpoch;
+//           }
+//         }
+//       }
+
+//       if (luceMancante) {
+//         if (coreController!.presenceOfLight) {
+//           luceMancante = false;
+//           setState(() {
+//             lackOfLightlabel.visible = false;
+//           });
+//           log('************ Luce presente !!!! ***********');
+//         }
+//       }
+
+//       setState(() {
+//         if (coreController!.outOfService) {
+//           outOfOrder.visible = true;
+//         } else {
+//           outOfOrder.visible = false;
+//         }
+
+//         carFloorLabel.text = coreController!.carFloor;
+//         log('CarDirection: ${coreController!.carDirection}');
+//         if (coreController!.carDirection != Direction.stopped) {
+//           directionIcon.image = AssetImage(
+//               coreController!.carDirection == Direction.up
+//                   ? 'assets/images/up.png'
+//                   : 'assets/images/down.png');
+//         } else {
+//           directionIcon.image = null;
+//         }
+//       });
+//     } catch (ex, stackTrace) {
+//       log('$ex\n$stackTrace');
+//     }
+//   }
+
+//   void coreController_OnCharacteristicUpdated(dynamic sender, dynamic e) {
+//     try {
+//       visualizzaEventi();
+//     } catch (ex, stackTrace) {
+//       log('$ex\n$stackTrace');
+//     }
+//   }
+
+//   void coreController_OnMissionStatusChanged(dynamic sender, dynamic e) {
+//     if (coreController!.missionStatus ==
+//         TypeMissionStatus.missionFinished.index) {
+//       log('Mission completed');
+//       returnToCommandPage();
+//     }
+//   }
+
+//   void coreController_OnFloorChanged(dynamic sender, String e) {
+//     setState(() {
+//       carFloorLabel.text = e;
+//     });
+//   }
+
+//   void stopWatch() {
+//     coreController!.onFloorChanged.cancel();
+//     coreController!.onMissionStatusChanged.cancel();
+//     coreController!.onCharacteristicUpdated.cancel();
+//   }
+
+//   void returnToCommandPage() {
+//     stopWatch();
+//     Navigator.pushReplacementNamed(context, '/commandPage');
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: Text('Status Page'),
+//       ),
+//       body: Center(
+//         child: Column(
+//           children: <Widget>[
+//             // Widgets for Status Page
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

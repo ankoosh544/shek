@@ -14,6 +14,7 @@ import 'package:sofia_test_app/interfaces/i_nearest_device_service.dart';
 import 'package:sofia_test_app/interfaces/i_rides_service.dart';
 import 'package:sofia_test_app/models/BLEDevice.dart';
 import 'package:sofia_test_app/models/RideSearchParameters.dart';
+import 'package:sofia_test_app/status_page.dart';
 
 class CommandPage extends StatefulWidget {
   @override
@@ -54,7 +55,7 @@ class _CommandPageState extends State<CommandPage> {
   void initState() {
     super.initState();
     initializer();
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       onAppearing();
     });
   }
@@ -72,10 +73,10 @@ class _CommandPageState extends State<CommandPage> {
         nearestDeviceResolver.monitoraggioSoloPiano = true;
         if (coreController != null) {
           // Register event listeners
-          // if (coreController?.onNearestDeviceChanged != null) {
-          //   //coreController?.onNearestDeviceChanged.listen(coreController_OnNearestDeviceChanged);
-
-          // }
+          if (coreController.onNearestDeviceChanged != null) {
+            coreController?.onNearestDeviceChanged
+                .listen(coreControllerOnNearestDeviceChanged);
+          }
           // Check if onNearestDeviceChanged event is available
           if (coreController?.onNearestDeviceChanged != null) {
             // Register event listener
@@ -163,7 +164,7 @@ class _CommandPageState extends State<CommandPage> {
   void initializer() {
     try {
       coreController = GetIt.instance<ICoreController>();
-      // ridesService = GetIt.instance<IRidesService>();
+      ridesService = GetIt.instance<IRidesService>();
       nearestDeviceResolver = GetIt.instance<INearestDeviceResolver>();
     } catch (ex) {
       // if (Preferences.getBool('DevOptions', defaultValue: false) == true) {
@@ -231,18 +232,19 @@ class _CommandPageState extends State<CommandPage> {
     }
   }
 
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  //   nearestDeviceResolver!.monitoraggioSoloPiano = true;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    nearestDeviceResolver!.monitoraggioSoloPiano = true;
 
-  //   Timer.periodic(Duration(seconds: tempoRefresh), (timer) {
-  //     refresh();
-  //   });
-  // }
+    Timer.periodic(Duration(seconds: tempoRefresh), (timer) async {
+      await refresh();
+    });
+  }
 
 // Event handler for onNearestDeviceChanged
-  void coreControllerOnNearestDeviceChanged(BLEDevice device) {
+  void coreControllerOnNearestDeviceChanged(BLEDevice device) async {
+    await refresh();
     // Handle the event here
     print('Nearest device changed: $device');
   }
@@ -256,64 +258,62 @@ class _CommandPageState extends State<CommandPage> {
   }
 
   Future<void> refresh() async {
-    print("=============RefreshFunction====");
+    print("============CommandPage===RefreshFunction====");
     String targetFloor = '';
-    if (coreController!.devices!.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() {
-          // wait.isVisible = true;
-          // GrigliaFromTo.isVisible = false;
-        });
+    if (coreController.devices!.isEmpty) {
+      setState(() {
+        // wait.isVisible = true;
+        // GrigliaFromTo.isVisible = false;
       });
-      print("============Refresh coreController!.devices! is empty");
       return;
     }
 
-    if (coreController!.nearestDevice != null) {
-      print("====================Refresh===nearestDevuce not full==========");
+    if (coreController.nearestDevice != null) {
       targetFloor =
-          await getTargetFloorAsync(coreController!.nearestDevice!.alias);
+          await getTargetFloorAsync(coreController.nearestDevice!.alias);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() {
-          if (coreController!.outOfService == true) {
-            // Wait.isVisible = false;
-            // GrigliaFromTo.isVisible = true;
+        if (mounted) {
+          setState(() {
+            if (coreController.outOfService == true) {
+              // Wait.isVisible = false;
+              // GrigliaFromTo.isVisible = true;
 
-            // Debug.Print("************ Fuori servizio !!!! ***********");
-            // this.coreController.Get_Piano_Cabina();
-            const TestoErrore = "ElevatorOutOfOrder";
+              // Debug.Print("************ Fuori servizio !!!! ***********");
+              // this.coreController.Get_Piano_Cabina();
+              const TestoErrore = "ElevatorOutOfOrder";
 
-            if (coreController!.carDirection == Direction.up) {
-              // PosizioneCabina.text = String.format(
-              //     Res.AppResources.LocationCabinBetween,
-              //     coreController.carFloor,
-              //     (coreController.carFloorNum + 1).toString());
-              final PosizioneCabina = "Location of Cabin going Up";
-            } else if (coreController!.carDirection == Direction.down) {
-              // PosizioneCabina = String.format(
-              //     Res.AppResources.LocationCabinBetween,
-              //     coreController.carFloor,
-              //     (coreController.carFloorNum - 1).toString());
-              final PosizioneCabina = "Location of Cabin going Down";
-            } else if (coreController!.carDirection == Direction.stopped) {
-              // PosizioneCabina.text =
-              //     Res.AppResources.LocationCabin + " " + coreController!.carFloor;
-              final PosizioneCabina = "Location of Cabin Stopped";
+              if (coreController.carDirection == Direction.up) {
+                // PosizioneCabina.text = String.format(
+                //     Res.AppResources.LocationCabinBetween,
+                //     coreController.carFloor,
+                //     (coreController.carFloorNum + 1).toString());
+                final PosizioneCabina = "Location of Cabin going Up";
+              } else if (coreController.carDirection == Direction.down) {
+                // PosizioneCabina = String.format(
+                //     Res.AppResources.LocationCabinBetween,
+                //     coreController.carFloor,
+                //     (coreController.carFloorNum - 1).toString());
+                final PosizioneCabina = "Location of Cabin going Down";
+              } else if (coreController.carDirection == Direction.stopped) {
+                // PosizioneCabina.text =
+                //     Res.AppResources.LocationCabin + " " + coreController!.carFloor;
+                final PosizioneCabina = "Location of Cabin Stopped";
+              }
+
+              const testoErrore = true;
+              final PosizioneCabinaIsVisible = true;
+            } else {
+              // TestoErrore.isVisible = false;
+              // PosizioneCabinaIsVisible = false;
             }
-
-            const testoErrore = true;
-            final PosizioneCabinaIsVisible = true;
-          } else {
-            // TestoErrore.isVisible = false;
-            // PosizioneCabinaIsVisible = false;
-          }
-        });
+          });
+        }
       });
     }
 
     if (luceMancante == false) {
-      if (coreController?.presenceOfLight == false) {
+      if (coreController.presenceOfLight == false) {
         final secondiPassati = DateTime.now()
             .difference(
                 DateTime.fromMillisecondsSinceEpoch(tickAttuali * 10000))
@@ -364,16 +364,18 @@ class _CommandPageState extends State<CommandPage> {
       }
     }
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      print("******************************$coreController");
+      print(coreController.nearestDevice);
       if (mounted) {
         setState(() {
-          print(coreController.devices);
+          print(coreController.nearestDevice);
           print("corecontroller of nearestDevice");
 
-          if (isFloor(coreController.devices!.first)) {
+          if (isFloor(coreController.nearestDevice)) {
             const waitVisible = false;
             const grigliaFromToVisible = true;
 
-            if (coreController?.devices!.first?.alias != floorPrecedente) {
+            if (coreController?.nearestDevice?.alias != floorPrecedente) {
               if (Platform.isIOS) {
                 const confirmButtonVisible = true;
               }
@@ -385,12 +387,12 @@ class _CommandPageState extends State<CommandPage> {
               const fromFloorText = "Enter  From Floor Test";
               const toFloorText = "Enter To Floor Test";
               final currentFloorLabelText =
-                  coreController?.devices!.first?.alias;
+                  coreController?.nearestDevice?.alias;
               final confirmButtonEnabled = true;
               final floorSelectorEntryEnabled = true;
               final floorSelectorEntryText = targetFloor;
               // this.floorSelectorEntry.requestFocus();
-              floorPrecedente = coreController!.devices!.first!.alias;
+              floorPrecedente = coreController!.nearestDevice!.alias;
             } else {
               const floorSelectorEntryEnabled = true;
               // this.floorSelectorEntry.requestFocus();
@@ -406,7 +408,8 @@ class _CommandPageState extends State<CommandPage> {
   }
 
   bool isFloor(BLEDevice? device) {
-    print("==============IsFloor Device");
+    print(
+        "*************************************IsFloor Device****************************************");
     print(device);
     print(isConnected);
     return device != null && device.type == BleDeviceType.esp32;
@@ -464,7 +467,11 @@ class _CommandPageState extends State<CommandPage> {
     //   coreController?.onNearestDeviceChanged
     //       .listen(coreController_OnNearestDeviceChanged);
     //   coreController?.onDeviceDisconnected
-    //       .listen(coreController_OnDeviceDisconnected);
+    //       .listen(coreController_OnDeviceDisconne
+    //
+    //
+    //
+    // cted);
     //   coreController?.onCharacteristicUpdated
     //       .listen(coreController_OnCharacteristicUpdated);
     //   coreController?.onMissionStatusChanged
@@ -600,6 +607,18 @@ class _CommandPageState extends State<CommandPage> {
     await changeFloorAsync();
   }
 
+  void _statusPage() {
+    print("===============coming to StatusPage====================");
+    Navigator.pop(context);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StatusPage(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -659,15 +678,7 @@ class _CommandPageState extends State<CommandPage> {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: isConnected
-                        ? () {
-                            // Perform the desired action on confirm button press
-                            String fromFloor = fromController.text;
-                            String toFloor = toController.text;
-                            // Do something with the floors
-                            print('From: $fromFloor, To: $toFloor');
-                          }
-                        : null,
+                    onPressed: isConnected ? () => _statusPage : null,
                     child: Text('Confirm'),
                   ),
                 ],

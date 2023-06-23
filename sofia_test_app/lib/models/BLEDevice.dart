@@ -3,8 +3,6 @@ import 'package:sofia_test_app/enums/ble_device_type.dart';
 import 'package:sofia_test_app/models/BLESample.dart';
 import 'package:sofia_test_app/models/LimitedQueue.dart';
 
-
-
 class BLEDevice {
   BleDeviceType type;
   String id;
@@ -29,24 +27,51 @@ class BLEDevice {
       DateTime.now().difference(lastSampleTimestamp!) <
           Duration(milliseconds: IS_ALIVE_TIMEOUT);
 
+  // double? get avgRxPower {
+  //   if (samples.any((s) => s.txPower != null && s.txPower == MAX_POWER_LEVEL)) {
+  //     var sumRxPower = samples
+  //         .where((s) => s.txPower != null && s.txPower == MAX_POWER_LEVEL)
+  //         .map((s) => s.rxPower!)
+  //         .reduce((a, b) => a + b);
+  //     return sumRxPower / samples.length.toDouble();
+  //   } else {
+  //     return null;
+  //   }
+  // }
+
   double? get avgRxPower {
-    if (samples.any((s) => s.txPower != null && s.txPower == MAX_POWER_LEVEL)) {
-      var sumRxPower = samples
-          .where((s) => s.txPower != null && s.txPower == MAX_POWER_LEVEL)
-          .map((s) => s.rxPower!)
-          .reduce((a, b) => a + b);
-      return sumRxPower / samples.length.toDouble();
-    } else {
+    var samplesWithTxPower = samples
+        .where((s) => s.txPower != null); // && s.txPower == MAX_POWER_LEVEL);
+    if (samplesWithTxPower.isEmpty) {
       return null;
     }
+
+    var avg = samplesWithTxPower
+            .map((s) => s.rxPower ?? 0)
+            .reduce((a, b) => (a ?? 0) + (b ?? 0)) /
+        samplesWithTxPower.length;
+    return avg;
   }
 
   double? get lastRxPower {
-    var lastSample = samples
-        .where((s) => s.txPower != null && s.txPower == MAX_POWER_LEVEL)
-        .lastOrNull;
-    return lastSample?.rxPower?.toDouble();
+    BLESample? lastSample;
+    List<BLESample> sampleList = samples.toList();
+    for (int i = sampleList.length - 1; i >= 0; i--) {
+      if (sampleList[i].txPower != null) {
+        lastSample = sampleList[i];
+        break;
+      }
+    }
+    return lastSample?.rxPower;
   }
+
+  // double? get lastRxPower {
+  //   var lastSample = samples
+  //       .where((s) => s.txPower != null && s.txPower == MAX_POWER_LEVEL)
+  //       .lastOrNull;
+  //   print("=======================$lastSample");
+  //   return lastSample?.rxPower?.toDouble();
+  // }
 
   @override
   String toString() {

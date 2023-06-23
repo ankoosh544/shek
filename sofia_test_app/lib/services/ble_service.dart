@@ -213,8 +213,8 @@ class BLEService implements IBleService {
               deviceType: getDeviceType(
                   scanResult.device, scanResult.advertisementData),
               timestamp: DateTime.now(),
-              txPower: scanResult.advertisementData?.txPowerLevel,
-              rxPower: scanResult.rssi,
+              txPower: scanResult.advertisementData.txPowerLevel!.toDouble(),
+              rxPower: scanResult.rssi.toDouble(),
             );
             print(sample);
             print("================================");
@@ -662,17 +662,19 @@ class BLEService implements IBleService {
 //       : BLEDeviceType.Car;
 // }
 
-  int? getTxPower(AdvertisementData advertisementData) {
+  double? getTxPower(AdvertisementData advertisementData) {
     var txPowerLevel = advertisementData.txPowerLevel;
     if (txPowerLevel != null) {
-      return txPowerLevel.toInt();
+      return txPowerLevel.toDouble();
     }
 
     return null;
   }
 
-  Future<int?> getRxPower(BluetoothDevice device) async {
-    final rssi = await device.readRssi();
-    return rssi;
+  Future<double?> getRxPower(BluetoothDevice device) async {
+    var rssi = await device.readRssi();
+    if (rssi != null) {
+      return rssi.toDouble();
+    }
   }
 }
