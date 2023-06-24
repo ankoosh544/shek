@@ -13,12 +13,14 @@ import 'package:sofia_test_app/interfaces/i_rides_service.dart';
 import 'package:sofia_test_app/login_page.dart';
 import 'package:sofia_test_app/profile_page.dart';
 import 'package:sofia_test_app/services/DataLoggerService.dart';
+import 'package:sofia_test_app/services/android_notification_manager.dart';
 import 'package:sofia_test_app/services/audio_service.dart';
 import 'package:sofia_test_app/services/auth_service.dart';
 import 'package:sofia_test_app/services/ble_service.dart';
 import 'package:sofia_test_app/services/core_controller.dart';
 import 'package:sofia_test_app/services/nearest_device_resolver.dart';
-import 'package:sofia_test_app/services/notification_manager.dart';
+
+
 import 'package:sofia_test_app/services/ride_service.dart';
 import 'package:sofia_test_app/settings_page.dart';
 import 'package:sofia_test_app/test_page.dart';
@@ -29,7 +31,7 @@ void main() {
   final locator = GetIt.instance;
   locator.registerLazySingleton<IAuthService>(() => AuthService());
   locator
-      .registerLazySingleton<INotificationManager>(() => NotificationManager());
+      .registerLazySingleton<INotificationManager>(() => AndroidNotificationManager());
   locator.registerLazySingleton<ICoreController>(() => CoreController());
   locator.registerLazySingleton<IBleService>(() => BLEService());
   locator.registerLazySingleton<INearestDeviceResolver>(
@@ -40,7 +42,7 @@ void main() {
   locator.registerLazySingleton<IAudioService>(() => AudioService());
 
   GetIt.instance.registerLazySingleton<AuthService>(() => AuthService());
-  GetIt.instance.registerLazySingleton(() => NotificationManager());
+  GetIt.instance.registerLazySingleton(() => AndroidNotificationManager());
   GetIt.instance.registerLazySingleton(() => AudioService());
   GetIt.instance.registerLazySingleton<BLEService>(() => BLEService());
   GetIt.instance.registerLazySingleton<CoreController>(() => CoreController());
