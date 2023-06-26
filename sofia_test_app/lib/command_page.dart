@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get_it/get_it.dart';
 import 'package:progress_dialog_null_safe/progress_dialog_null_safe.dart';
 import 'package:sofia_test_app/enums/ble_device_type.dart';
@@ -9,6 +10,7 @@ import 'package:sofia_test_app/enums/direction.dart';
 import 'package:sofia_test_app/enums/operation_mode.dart';
 import 'package:sofia_test_app/enums/type_mission_status.dart';
 import 'package:sofia_test_app/footer.dart';
+import 'package:sofia_test_app/interfaces/i_ble_service.dart';
 import 'package:sofia_test_app/interfaces/i_core_controller.dart';
 import 'package:sofia_test_app/interfaces/i_nearest_device_service.dart';
 import 'package:sofia_test_app/interfaces/i_rides_service.dart';
@@ -28,6 +30,8 @@ class _CommandPageState extends State<CommandPage> {
   late IRidesService ridesService;
   late ICoreController coreController;
   late INearestDeviceResolver nearestDeviceResolver;
+
+  late IBleService bleService;
 
   String floorFrom = '0';
   String floorTo = '';
@@ -85,14 +89,7 @@ class _CommandPageState extends State<CommandPage> {
                 coreController!.onNearestDeviceChanged.listen((device) {
               coreControllerOnNearestDeviceChanged(device);
             });
-
-            print('onNearestDeviceChanged event listener registered');
-
-            // Print a message when the event stream emits a value
-            nearestDeviceSubscription.onData((device) {
-              print(
-                  '====Received value from onNearestDeviceChanged==========: $device');
-            });
+            nearestDeviceSubscription.onData((device) {});
 
             // Print a message when the event listener is canceled or completed
             nearestDeviceSubscription.onDone(() {
@@ -102,28 +99,29 @@ class _CommandPageState extends State<CommandPage> {
           } else {
             print('=====onNearestDeviceChanged event is not available======');
           }
-          if (coreController?.onDeviceDisconnected != null) {
-            coreController?.onDeviceDisconnected
+          if (coreController.onDeviceDisconnected != null) {
+            print("============DeviceDisconnecred==========================");
+            coreController.onDeviceDisconnected
                 .listen(coreControllerOnDeviceDisconnected);
           }
 
-          if (coreController?.onCharacteristicUpdated != null) {
-            coreController?.onCharacteristicUpdated
+          if (coreController.onCharacteristicUpdated != null) {
+            coreController.onCharacteristicUpdated
                 .listen(coreControllerOnCharacteristicUpdated);
           }
 
-          if (coreController?.onMissionStatusChanged != null) {
-            coreController?.onMissionStatusChanged
+          if (coreController.onMissionStatusChanged != null) {
+            coreController.onMissionStatusChanged
                 .listen(coreControllerOnMissionStatusChanged);
           }
         } else {
           print('coreController is not initialized');
         }
 
-        //  coreController?.onNearestDeviceChanged.listen(coreController_OnNearestDeviceChanged);
-        // coreController?.onDeviceDisconnected.listen(coreController_OnDeviceDisconnected);
-        // coreController?.onCharacteristicUpdated.listen(coreController_OnCharacteristicUpdated);
-        // coreController?.onMissionStatusChanged.listen(coreController_OnMissionStatusChanged);
+        // coreController.onNearestDeviceChanged.listen(coreControllerOnNearestDeviceChanged);
+        // coreController.onDeviceDisconnected.listen(coreControllerOnDeviceDisconnected);
+        // coreController.onCharacteristicUpdated.listen(coreControllerOnCharacteristicUpdated);
+        // coreController.onMissionStatusChanged.listen(coreControllerOnMissionStatusChanged);
       });
 
       Timer.periodic(Duration(seconds: tempoRefresh), (timer) async {
@@ -166,6 +164,7 @@ class _CommandPageState extends State<CommandPage> {
       coreController = GetIt.instance<ICoreController>();
       ridesService = GetIt.instance<IRidesService>();
       nearestDeviceResolver = GetIt.instance<INearestDeviceResolver>();
+      bleService = GetIt.instance<IBleService>();
     } catch (ex) {
       // if (Preferences.getBool('DevOptions', defaultValue: false) == true) {
       //   showDialog(
@@ -250,6 +249,7 @@ class _CommandPageState extends State<CommandPage> {
   }
 
   void coreControllerOnDeviceDisconnected(void _) async {
+    print("Coming to disconnected Eventhandler");
     await refresh();
   }
 
@@ -259,12 +259,18 @@ class _CommandPageState extends State<CommandPage> {
 
   Future<void> refresh() async {
     print("============CommandPage===RefreshFunction====");
+    // print(coreController.nearestDevice);
+    // print(coreController.devices);
     String targetFloor = '';
-    if (coreController.devices!.isEmpty) {
-      setState(() {
-        // wait.isVisible = true;
-        // GrigliaFromTo.isVisible = false;
-      });
+    if (coreController.devices?.isEmpty ?? false) {
+      if (mounted) {
+        setState(() {
+          isConnected = false;
+
+          // wait.isVisible = true;
+          // GrigliaFromTo.isVisible = false;
+        });
+      }
       return;
     }
 
@@ -372,6 +378,8 @@ class _CommandPageState extends State<CommandPage> {
           print("corecontroller of nearestDevice");
 
           if (isFloor(coreController.nearestDevice)) {
+            print(
+                "==========If Nearest Device Found===============================================");
             const waitVisible = false;
             const grigliaFromToVisible = true;
 
@@ -399,6 +407,8 @@ class _CommandPageState extends State<CommandPage> {
               const confirmButtonEnabled = true;
             }
           } else {
+            print(
+                "==============================Else Nearest Device Not Found=======================================");
             waitVisible = true;
             grigliaFromToVisible = false;
           }
@@ -618,6 +628,16 @@ class _CommandPageState extends State<CommandPage> {
       ),
     );
   }
+  // void disconnected()async{
+  //  // await bleService.disconnectToDeviceAsync();
+
+  //   isConnected =false;
+
+  // }
+  // void reconnect(){
+  //   bleService.startScanningAsync(-1);
+
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -641,6 +661,9 @@ class _CommandPageState extends State<CommandPage> {
                           'Elevator is Not Connected.',
                           style: TextStyle(fontSize: 18),
                         ),
+                  //       ElevatedButton(onPressed: disconnected, child: Text("Disconnect"),),
+                  // SizedBox(height: 20),
+                  //   ElevatedButton(onPressed: reconnect, child: Text("ReConnect"),),
                   SizedBox(height: 20),
                   Row(
                     children: [

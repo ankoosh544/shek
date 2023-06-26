@@ -10,8 +10,8 @@ import 'package:timezone/timezone.dart' as tz;
 import '../interfaces/i_notification_manager.dart';
 
 class AndroidNotificationManager implements INotificationManager {
-  static const String channelId = 'default';
-  static const String channelName = 'Default';
+  static const String channelId = 'com.audio_channel';
+  static const String channelName = 'com.audio_channel';
 
   bool channelInitialized = false;
   int messageId = 0;

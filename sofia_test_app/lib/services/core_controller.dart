@@ -168,6 +168,31 @@ class CoreController implements ICoreController {
     _eta = value;
   }
 
+  //events
+  final StreamController<BLEDevice> _nearestDeviceController =
+      StreamController<BLEDevice>.broadcast();
+  final StreamController<String> _floorController =
+      StreamController<String>.broadcast();
+  final StreamController<void> _missionStatusController =
+      StreamController<void>.broadcast();
+  final StreamController<void> _characteristicUpdatedController =
+      StreamController<void>.broadcast();
+  final StreamController<void> _deviceDisconnectedController =
+      StreamController<void>.broadcast();
+  @override
+  Stream<BLEDevice> get onNearestDeviceChanged =>
+      _nearestDeviceController.stream;
+  @override
+  Stream<String> get onFloorChanged => _floorController.stream;
+  @override
+  Stream<void> get onMissionStatusChanged => _missionStatusController.stream;
+  @override
+  Stream<void> get onCharacteristicUpdated =>
+      _characteristicUpdatedController.stream;
+  @override
+  Stream<void> get onDeviceDisconnected => _deviceDisconnectedController.stream;
+
+
   CoreController() {
     authService = GetIt.instance<IAuthService>();
     bleService = GetIt.instance<IBleService>();
@@ -185,7 +210,7 @@ class CoreController implements ICoreController {
     });
 
     bleService.onDeviceDisconnected.listen((device) {
-      BleService_OnDeviceDisconnected();
+      bleService_OnDeviceDisconnected;
     });
 
     resolver.onNearestDeviceChanged.listen((nearestDevice) {
@@ -217,12 +242,11 @@ class CoreController implements ICoreController {
     resolver.addSample(sample);
   }
 
-  void BleService_OnDeviceDisconnected() {
-    try {
-      if (onDeviceDisconnected != null) {
-        onDeviceDisconnected;
-        print('Device disconnected!');
-      }
+ void bleService_OnDeviceDisconnected() async {
+  try {
+        _deviceDisconnectedController.onCancel;
+      _deviceDisconnectedController.add(null);
+    
     } catch (ex) {
       // if (Preferences.get('DevOptions', false) == true) {
       //   await showDialog(
@@ -246,7 +270,6 @@ class CoreController implements ICoreController {
 
   void Resolver_NearestDeviceChanged(BLEDevice device) async {
     if (device == null) {
-      print("====================================Device is Null");
       return;
     }
 
@@ -261,11 +284,12 @@ class CoreController implements ICoreController {
       emitNotifications(device);
     }
 
-    if (_nearestDeviceController.hasListener) {
+    if (onNearestDeviceChanged != null) {
       _nearestDeviceController.add(device);
     }
 
     if (operationMode == OperationMode.changeFloorMission) {
+      print("OperationMode is changeFloorMission");
       if (bleService.connectedDeviceId.isNotEmpty) {
         await bleService.disconnectToDeviceAsync();
         await stopCharacteristicWatchAsync();
@@ -277,30 +301,7 @@ class CoreController implements ICoreController {
     ConnessioneInCorso = false;
   }
 
-  //events
-  final StreamController<BLEDevice> _nearestDeviceController =
-      StreamController<BLEDevice>.broadcast();
-  final StreamController<String> _floorController =
-      StreamController<String>.broadcast();
-  final StreamController<void> _missionStatusController =
-      StreamController<void>.broadcast();
-  final StreamController<void> _characteristicUpdatedController =
-      StreamController<void>.broadcast();
-  final StreamController<void> _deviceDisconnectedController =
-      StreamController<void>.broadcast();
-  @override
-  Stream<BLEDevice> get onNearestDeviceChanged =>
-      _nearestDeviceController.stream;
-  @override
-  Stream<String> get onFloorChanged => _floorController.stream;
-  @override
-  Stream<void> get onMissionStatusChanged => _missionStatusController.stream;
-  @override
-  Stream<void> get onCharacteristicUpdated =>
-      _characteristicUpdatedController.stream;
-  @override
-  Stream<void> get onDeviceDisconnected => _deviceDisconnectedController.stream;
-
+  
   void dispose() {
     _nearestDeviceController.close();
     _floorController.close();
@@ -534,14 +535,23 @@ class CoreController implements ICoreController {
             PrimaConnessioneDevice) {
           PrimaConnessioneDevice = false;
           Vibration.vibrate();
-          notificationManager.sendNotification(
-              "Soffia", "Message tells you are near to Elevator");
+          // notificationManager.sendNotification(
+          //     "Soffia", "Message tells you are near to Elevator");
           audioService.beep();
+          Future.delayed(const Duration(milliseconds: 100), () {
+          sendMessage();
+          });
           tickAttuali = DateTime.now().millisecondsSinceEpoch;
         }
       }
     }
   }
+
+Future<void> sendMessage() async{
+  notificationManager.sendNotification(
+              "Soffia", "Message tells you are near to Elevator");
+
+}
 
   Future<void> getPianoCabina() async {
     try {

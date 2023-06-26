@@ -93,8 +93,8 @@ class NearestDeviceResolver implements INearestDeviceResolver {
     if (_monitoraggioSoloPiano == true) {
       debugPrint("Check for nearestDevices$devices");
 
-      if (devices.where((d) => d.type == BleDeviceType.esp32).isEmpty) {
-        return null;
+     if (devices.where((d) => d.type == BleDeviceType.esp32).length == 0) {
+      return null;
       }
     } else {
       if (devices.isEmpty) {
@@ -102,7 +102,7 @@ class NearestDeviceResolver implements INearestDeviceResolver {
       }
     }
     print("=====Devices=============$devices");
-    var nearestDevice = devices.first;
+    var nearestDevice = devices.firstOrNull;
     print("========nearestdevice==========$nearestDevice");
     var maxRxPowerValue = double.negativeInfinity;
     double? avgRxPowerValue = double.negativeInfinity;

@@ -9,7 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sofia_test_app/command_page.dart';
 import 'package:sofia_test_app/interfaces/i_auth_service.dart';
 import 'package:sofia_test_app/interfaces/i_core_controller.dart';
+import 'package:sofia_test_app/interfaces/i_notification_manager.dart';
 import 'package:sofia_test_app/test_page.dart';
+import 'package:flutter/services.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -23,13 +25,20 @@ class _LoginPageState extends State<LoginPage> {
 
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
+ final notificationManager = GetIt.instance<INotificationManager>();
 
   bool rememberPassword = false;
   String errorMessage = '';
+  
 
   @override
   void initState() {
     super.initState();
+    
+
+   
+ 
+     
 
     initializeLanguage();
     checkGPS();

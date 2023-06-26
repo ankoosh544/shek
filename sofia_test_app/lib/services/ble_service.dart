@@ -166,7 +166,7 @@ class BLEService implements IBleService {
 
   void adapter_DeviceDisconnected() {
     if (onDeviceDisconnected != null) {
-      _deviceDisconnectedController.done;
+        _deviceDisconnectedController.add(null);
     }
   }
 
@@ -414,6 +414,7 @@ class BLEService implements IBleService {
 
   @override
   Future<void> disconnectToDeviceAsync() async {
+    print("============================Coming to disconnection =====================================");
     try {
       await disconnectFromDevice();
     } catch (e) {
