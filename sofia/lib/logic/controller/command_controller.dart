@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:get_it/get_it.dart';
 import 'package:progress_dialog_null_safe/progress_dialog_null_safe.dart';
+import 'package:sofia/enums/ble_device_type.dart';
+import 'package:sofia/enums/direction.dart';
 import 'package:sofia/enums/operation_mode.dart';
 import 'package:sofia/enums/type_mission_status.dart';
 import 'package:sofia/interfaces/i_ble_service.dart';
@@ -10,6 +13,7 @@ import 'package:sofia/interfaces/i_core_controller.dart';
 import 'package:sofia/interfaces/i_nearest_device_service.dart';
 import 'package:sofia/interfaces/i_rides_service.dart';
 import 'package:sofia/models/BLEDevice.dart';
+import 'package:sofia/models/RideSearchParameters.dart';
 
 class CommandController extends GetxController {
   bool isLoading = false;
@@ -125,7 +129,6 @@ class CommandController extends GetxController {
         // coreController.onCharacteristicUpdated.listen(coreControllerOnCharacteristicUpdated);
         // coreController.onMissionStatusChanged.listen(coreControllerOnMissionStatusChanged);
       });
-
       Timer.periodic(Duration(seconds: tempoRefresh), (timer) async {
         await refresh();
       });
@@ -138,14 +141,9 @@ class CommandController extends GetxController {
     // print(coreController.devices);
     String targetFloor = '';
     if (coreController.devices?.isEmpty ?? false) {
-      if (mounted) {
-        setState(() {
-          isConnected = false;
-
-          // wait.isVisible = true;
-          // GrigliaFromTo.isVisible = false;
-        });
-      }
+      isConnected = false;
+      // wait.isVisible = true;
+      // GrigliaFromTo.isVisible = false;
       return;
     }
 
@@ -154,28 +152,24 @@ class CommandController extends GetxController {
           await getTargetFloorAsync(coreController.nearestDevice!.alias);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {
-            if (coreController.outOfService == true) {
-              // Wait.isVisible = false;
-              // GrigliaFromTo.isVisible = true;
+        if (coreController.outOfService == true) {
+          // Wait.isVisible = false;
+          // GrigliaFromTo.isVisible = true;
 
-              if (coreController.carDirection == Direction.up) {
-                final PosizioneCabina = "Location of Cabin going Up";
-              } else if (coreController.carDirection == Direction.down) {
-                final PosizioneCabina = "Location of Cabin going Down";
-              } else if (coreController.carDirection == Direction.stopped) {
-                final PosizioneCabina = "Location of Cabin Stopped";
-              }
+          if (coreController.carDirection == Direction.up) {
+            final PosizioneCabina = "Location of Cabin going Up";
+          } else if (coreController.carDirection == Direction.down) {
+            final PosizioneCabina = "Location of Cabin going Down";
+          } else if (coreController.carDirection == Direction.stopped) {
+            final PosizioneCabina = "Location of Cabin Stopped";
+          }
 
-              outOfServiceError = true;
-              final PosizioneCabinaIsVisible = true;
-            } else {
-              outOfServiceError = false;
-              // TestoErrore.isVisible = false;
-              // PosizioneCabinaIsVisible = false;
-            }
-          });
+          outOfServiceError = true;
+          final PosizioneCabinaIsVisible = true;
+        } else {
+          outOfServiceError = false;
+          // TestoErrore.isVisible = false;
+          // PosizioneCabinaIsVisible = false;
         }
       });
     }
@@ -193,9 +187,7 @@ class CommandController extends GetxController {
             primaConnessioneDevice == true) {
           primaConnessioneDevice = false;
           WidgetsBinding.instance.addPostFrameCallback((_) async {
-            setState(() {
-              testoLuceVisible = true;
-            });
+            testoLuceVisible = true;
           });
           // setState(() {
           //   testoLuceVisible = true;
@@ -224,59 +216,62 @@ class CommandController extends GetxController {
       if (coreController?.presenceOfLight == true) {
         luceMancante = false;
         WidgetsBinding.instance.addPostFrameCallback((_) async {
-          setState(() {
-            testoLuceVisible = false;
-          });
+          testoLuceVisible = false;
         });
         // Debug.print('************ Luce presente !!!! ***********');
       }
     }
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      print("******************************$coreController");
-      print(coreController.nearestDevice);
-      if (mounted) {
-        setState(() {
-          print(coreController.nearestDevice);
-          print("corecontroller of nearestDevice");
+      if (isFloor(coreController.nearestDevice)) {
+        waitVisible = false;
+        grigliaFromToVisible = true;
 
-          if (isFloor(coreController.nearestDevice)) {
-            print(
-                "==========If Nearest Device Found===============================================");
-            const waitVisible = false;
-            const grigliaFromToVisible = true;
-
-            if (coreController?.nearestDevice?.alias != floorPrecedente) {
-              if (Platform.isIOS) {
-                const confirmButtonVisible = true;
-              }
-              setState(() {
-                isConnected = true;
-              });
-              final welcomeLabelText =
-                  'Welcome ${coreController?.loggerUser?.username}';
-              const fromFloorText = "Enter  From Floor Test";
-              const toFloorText = "Enter To Floor Test";
-              final currentFloorLabelText =
-                  coreController?.nearestDevice?.alias;
-              final confirmButtonEnabled = true;
-              final floorSelectorEntryEnabled = true;
-              final floorSelectorEntryText = targetFloor;
-              // this.floorSelectorEntry.requestFocus();
-              floorPrecedente = coreController!.nearestDevice!.alias;
-            } else {
-              const floorSelectorEntryEnabled = true;
-              // this.floorSelectorEntry.requestFocus();
-              const confirmButtonEnabled = true;
-            }
-          } else {
-            print(
-                "==============================Else Nearest Device Not Found=======================================");
-            waitVisible = true;
-            grigliaFromToVisible = false;
+        if (coreController?.nearestDevice?.alias != floorPrecedente) {
+          if (Platform.isIOS) {
+            const confirmButtonVisible = true;
           }
-        });
+          isConnected = true;
+          final welcomeLabelText =
+              'Welcome ${coreController?.loggerUser?.username}';
+          const fromFloorText = "Enter  From Floor Test";
+          const toFloorText = "Enter To Floor Test";
+          final currentFloorLabelText = coreController?.nearestDevice?.alias;
+          final confirmButtonEnabled = true;
+          final floorSelectorEntryEnabled = true;
+          final floorSelectorEntryText = targetFloor;
+          // this.floorSelectorEntry.requestFocus();
+          floorPrecedente = coreController!.nearestDevice!.alias;
+        } else {
+          const floorSelectorEntryEnabled = true;
+          // this.floorSelectorEntry.requestFocus();
+          const confirmButtonEnabled = true;
+        }
+      } else {
+        waitVisible = true;
+        grigliaFromToVisible = false;
       }
     });
+  }
+
+  bool isFloor(BLEDevice? device) {
+    return device != null && device.type == BleDeviceType.esp32;
+  }
+
+  Future<String> getTargetFloorAsync(String startingFloor) async {
+    var lastRides = await ridesService!.searchAsync(RideSearchParameters(
+      length: MAX_ATTEMPTS,
+      elevatorId: ELEVATOR_ID,
+      startingFloor: startingFloor,
+      username: coreController?.loggerUser?.username ?? '',
+    ));
+
+    var floors = lastRides.map((r) => r.targetFloor).toList();
+    var targetFloor =
+        floors.length == MAX_ATTEMPTS && floors.toSet().length == 1
+            ? floors.first
+            : '';
+
+    return targetFloor.toString();
   }
 
   void coreControllerOnNearestDeviceChanged(BLEDevice device) async {
@@ -300,14 +295,14 @@ class CommandController extends GetxController {
       if (this.coreController!.missionStatus ==
           TypeMissionStatus.MISSION_QUEUED.index) {
         if (floorTo != "") {
-          Navigator.pushNamed(
-            context,
-            '/StatusPage?currentFloor=$floorFrom&targetFloor=$floorTo',
-          );
-
+          // Navigator.pushNamed(
+          //   context,
+          //   '/StatusPage?currentFloor=$floorFrom&targetFloor=$floorTo',
+          // );
           floorTo = "";
         }
       }
     } catch (ex) {}
   }
+
 }

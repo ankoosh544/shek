@@ -30,6 +30,7 @@ class CommandPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
+          
         ),
       ),
     );

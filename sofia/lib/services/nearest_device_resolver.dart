@@ -37,12 +37,14 @@ class NearestDeviceResolver implements INearestDeviceResolver {
   @override
   void addSample(BLESample sample) {
     var device = findDevice(sample);
+    print(device);
     device.samples.enqueue(sample);
     refreshNearestDevice(sample.timestamp);
   }
 
   @override
   void refreshNearestDevice(DateTime timestamp) {
+    print("==========Refresh NearestDevice=====================");
     clearUnreachableDevices(
         timestamp.subtract(Duration(milliseconds: UNREACHABLE_DEVICE_TIMEOUT)));
     var currentNearestDevice =
@@ -89,7 +91,7 @@ class NearestDeviceResolver implements INearestDeviceResolver {
   }
 
   BLEDevice? getNearestDeviceImpl(List<BLEDevice> devices) {
-    print("==================$devices");
+    print("======getNearestDeviceImp============$devices");
     if (_monitoraggioSoloPiano == true) {
       debugPrint("Check for nearestDevices$devices");
 

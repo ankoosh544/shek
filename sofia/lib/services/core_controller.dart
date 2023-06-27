@@ -243,7 +243,7 @@ class CoreController implements ICoreController {
 
   void bleService_OnDeviceDisconnected() async {
     try {
-      _deviceDisconnectedController.onCancel;
+      print("///////////////////BleDevice On Disconnected/////////////");
       _deviceDisconnectedController.add(null);
     } catch (ex) {
       // if (Preferences.get('DevOptions', false) == true) {
@@ -272,40 +272,42 @@ class CoreController implements ICoreController {
     }
 
     if (ConnessioneInCorso) {
-      print("====================================Device is ConnessioneInCorso");
       return;
     }
-    print("====================================Device check");
     ConnessioneInCorso = true;
+
+    print("===========Line1=========================");
     await connectDeviceAndRead(device);
     if (device != null) {
+       print("===========Line2=========================");
       emitNotifications(device);
     }
 
     if (onNearestDeviceChanged != null) {
+       print("===========Line3=========================");
       _nearestDeviceController.add(device);
     }
+    print("======================$operationMode");
+    print(OperationMode.changeFloorMission);
 
     if (operationMode == OperationMode.changeFloorMission) {
-      print("OperationMode is changeFloorMission");
-      if (bleService.connectedDeviceId.isNotEmpty) {
+       print("===========Line4=========================");
+      if (bleService.connectedDeviceId != null &&
+          bleService.connectedDeviceId.isNotEmpty) {
         await bleService.disconnectToDeviceAsync();
         await stopCharacteristicWatchAsync();
+
+// connessione dispositivo più vicino
         await bleService.connectToDeviceAsync(device.id);
         await startCharacteristicReadWatchAsync();
+//MARIO await connectDeviceAndRead(device);
       }
     }
 
     ConnessioneInCorso = false;
   }
 
-  void dispose() {
-    _nearestDeviceController.close();
-    _floorController.close();
-    _missionStatusController.close();
-    _characteristicUpdatedController.close();
-    _deviceDisconnectedController.close();
-  }
+
 
   set carFloorNum(int? floorNum) {
     // Set the car floor number.
@@ -325,7 +327,7 @@ class CoreController implements ICoreController {
   @override
   Future<void> startScanningAsync() async {
     isStarted = true;
-    notificationManager.initialize();
+   // notificationManager.initialize();
     operationMode = OperationMode.deviceScanning;
 
     Timer.periodic(Duration(milliseconds: REFRESH_TIMEOUT), (timer) {
@@ -361,8 +363,6 @@ class CoreController implements ICoreController {
       await bleService.sendCommandAsync(IBleService.ESP_SERVICE_GUID,
           FLOOR_REQUEST_CHARACTERISTIC_GUID, destinationFloor);
 
-      // avvio monitoraggio "Cambio piano" e "Fine monitoraggio"
-      // await startCharacteristicWatchAsync();
     } catch (e) {
       // if (Preferences.get("DevOptions", false) == true) {
       //   await App.current.mainPage
@@ -439,41 +439,6 @@ class CoreController implements ICoreController {
     }
   }
 
-  // Future<void> getPianoCabina() async {
-  //   try {
-  //     carFloor = "999";
-  //     if (bleService.connectedDeviceId.toString() != "") {
-  //       try {
-  //         await bleService.getValueFromCharacteristicGuid(
-  //             IBleService.FLOOR_SERVICE_GUID, FLOOR_CHANGE_CHARACTERISTIC_GUID);
-  //       } catch (e) {
-  //         return;
-  //         // await App.Current.MainPage.DisplayAlert("Alert", ex.Message + "\r\n" + ex.StackTrace + "\r\n" + ex.Source, "OK");
-  //       }
-  //       if (bleService.valueFromCharacteristic != null) {
-  //         try {
-  //           carFloor = ((bleService.valueFromCharacteristic[0] as int) & 0x3F)
-  //               .toString();
-  //         } catch (e) {
-  //           // if (Preferences.get("DevOptions", false) == true) {
-  //           //   carFloor = "*****";
-  //           //   // Debug.Print("***** Caratteristica non trovata ******");
-  //           // }
-  //         }
-  //       } else {
-  //         carFloor = "999";
-  //       }
-  //     }
-  //   } catch (e) {
-  //     // if (Preferences.get("DevOptions", false) == true) {
-  //     //   await App.current.mainPage.displayAlert(
-  //     //       "Alert", "$e\r\n${e.stackTrace}\r\n${e.source}", "OK");
-  //     // } else {
-  //     //   debug.Print("$e\r\n${e.stackTrace}\r\n${e.source}");
-  //     // }
-  //   }
-  // }
-
   Future<void> stopCharacteristicWatchAsync() async {
     try {
       // Unsubscribe from characteristic update events
@@ -534,20 +499,20 @@ class CoreController implements ICoreController {
           Vibration.vibrate();
           // notificationManager.sendNotification(
           //     "Soffia", "Message tells you are near to Elevator");
-          audioService.beep();
-          Future.delayed(const Duration(milliseconds: 100), () {
-            sendMessage();
-          });
+         // audioService.beep();
+          // Future.delayed(const Duration(milliseconds: 100), () {
+          //   sendMessage();
+          // });
           tickAttuali = DateTime.now().millisecondsSinceEpoch;
         }
       }
     }
   }
 
-  Future<void> sendMessage() async {
-    notificationManager.sendNotification(
-        "Soffia", "Message tells you are near to Elevator");
-  }
+  // Future<void> sendMessage() async {
+  //   notificationManager.sendNotification(
+  //       "Soffia", "Message tells you are near to Elevator");
+  // }
 
   Future<void> getPianoCabina() async {
     try {
@@ -608,9 +573,16 @@ class CoreController implements ICoreController {
         }
       }
 
-      //  bleService.onCharacteristicUpdated += bleServiceOnCharacteristicUpdated;
-      //bleService.onCharacteristicUpdated
-      //    .listen(bleServiceOnCharacteristicUpdated);
+
+
+
+     
+      bleService.onCharacteristicUpdated
+         .listen((BLECharacteristicEventArgs bl){
+            bleServiceOnCharacteristicUpdated(this, bl);
+         });
+
+
       for (final characteristic in Characteristics) {
         await bleService.startCharacteristicWatchAsync(
             IBleService.ESP_SERVICE_GUID, characteristic);
@@ -659,8 +631,8 @@ class CoreController implements ICoreController {
         case MISSION_STATUS_CHARACTERISTIC_GUID:
           try {
             if (e.value!.length > 2) {
-              // missionStatus = e.value[0];
-              // eta = e.value[1] * 256 + e.value[2];
+              missionStatus = e.value?[0] as TypeMissionStatus?;
+              eta = e.value![1] * 256 + e.value![2];
             }
             if (onMissionStatusChanged != null) {
               onMissionStatusChanged;
@@ -725,4 +697,13 @@ class CoreController implements ICoreController {
 
     return carDevice;
   }
+
+  void dispose() {
+    _nearestDeviceController.close();
+    _floorController.close();
+    _missionStatusController.close();
+    _characteristicUpdatedController.close();
+    _deviceDisconnectedController.close();
+  }
+
 }

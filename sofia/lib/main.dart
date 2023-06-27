@@ -1,10 +1,31 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sofia/logic/binding/login_binding.dart';
 import 'package:sofia/pages/login_page.dart';
+import 'package:sofia/pages/test_page.dart';
+import 'package:sofia/utils/service_locator.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  serviceLocatorInit();
+
+  if (Platform.isAndroid) {
+    [
+      Permission.location,
+      Permission.storage,
+      Permission.bluetooth,
+      Permission.bluetoothConnect,
+      Permission.bluetoothScan
+    ].request().then((status) {
+      runApp(const MyApp());
+    });
+  } else {
+    runApp(const MyApp());
+  }
   runApp(const MyApp());
 }
 
@@ -36,7 +57,7 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       getPages: [
-        GetPage(name: "/", page: () => LogInPage(), binding: LoginBinding()),
+        GetPage(name: "/", page: () => TestPage(),),
         // GetPage(name: "/TakeOrderPage", page: () => TakeOrderPage()),
         // GetPage(name: "/SearchPage", page: () => SearchPage()),
         // GetPage(name: "/OrderHistoryPage", page: () => OrderHistoryPage()),

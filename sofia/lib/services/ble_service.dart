@@ -597,7 +597,7 @@ class BLEService implements IBleService {
       var manufacturerDataValue = manufacturerData[0xFF]!;
       var floorServiceByteArray = hex.decode(IBleService.ESP_SERVICE_GUID);
       if (ListEquality().equals(manufacturerDataValue, floorServiceByteArray)) {
-        return BleDeviceType.esp32;
+        return BleDeviceType.car;
       }
     }
 

@@ -47,6 +47,8 @@ dependencies:
   vibration: ^1.8.1
   firebase_analytics: ^10.4.3
   progress_dialog_null_safe: ^1.0.7
+  permission_handler: ^10.3.0
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:
