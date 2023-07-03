@@ -121,8 +121,6 @@ class CommandController extends GetxController {
             coreController.onMissionStatusChanged
                 .listen(coreControllerOnMissionStatusChanged);
           }
-        } else {
-          print('coreController is not initialized');
         }
         // coreController.onNearestDeviceChanged.listen(coreControllerOnNearestDeviceChanged);
         // coreController.onDeviceDisconnected.listen(coreControllerOnDeviceDisconnected);
@@ -136,9 +134,6 @@ class CommandController extends GetxController {
   }
 
   Future<void> refresh() async {
-    print("============CommandPage===RefreshFunction====");
-    // print(coreController.nearestDevice);
-    // print(coreController.devices);
     String targetFloor = '';
     if (coreController.devices?.isEmpty ?? false) {
       isConnected = false;
@@ -279,7 +274,6 @@ class CommandController extends GetxController {
   }
 
   void coreControllerOnDeviceDisconnected(void _) async {
-    print("Coming to disconnected Eventhandler");
     await refresh();
   }
 
@@ -304,5 +298,4 @@ class CommandController extends GetxController {
       }
     } catch (ex) {}
   }
-
 }

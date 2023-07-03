@@ -25,12 +25,11 @@ class CommandPage extends StatelessWidget {
       drawer: CustomDrawer(
         indexClicked: 1,
       ),
-      body: Padding(
+      body: const Padding(
         padding: const EdgeInsets.only(left: 20, right: 20, top: 15, bottom: 8),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
-          
         ),
       ),
     );

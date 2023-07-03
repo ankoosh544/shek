@@ -1,86 +1,33 @@
-
-
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-
 import 'package:sofia/interfaces/i_core_controller.dart';
+import 'package:sofia/logic/controller/test_controller.dart';
 import 'package:sofia/models/BLEDevice.dart';
 import 'package:sofia/services/nearest_device_resolver.dart';
+import 'package:sofia/widgets/custom_drawer.dart';
 
-class TestPage extends StatefulWidget {
-  @override
-  _TestPageState createState() => _TestPageState();
-}
-
-class _TestPageState extends State<TestPage> {
-  late ICoreController coreController;
-  // late NearestDeviceResolver nearestDeviceResolver;
-  int itemCount = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    initDependencies();
-    startTimer();
-  }
-
-  void initDependencies() {
-    coreController = GetIt.instance<ICoreController>();
-    //nearestDeviceResolver = GetIt.instance<NearestDeviceResolver>();
-  }
-
-  void startTimer() {
-    Timer.periodic(Duration(milliseconds: 1000), (_) {
-      refreshListView();
-    });
-  }
-
-  void refreshListView() {
-    debugPrint(coreController.devices.toString());
-    debugPrint("============================RefreshListview");
-    debugPrint(coreController.nearestDevice.toString());
-
-    if (mounted) {
-      setState(() {
-        if (coreController.devices != null) {
-          itemCount = coreController.devices!.length;
-        } else {
-          itemCount = 0;
-        }
-      });
-    }
-  }
-
-  void resetConfigurationClicked() {
-    try {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("Information"),
-            content: Text("All preferences deleted"),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
-    } catch (ex) {
-      print(ex);
-    }
-  }
-
+class TestPage extends StatelessWidget {
+  final TestController testController = Get.put(TestController());
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Test Page"),
+        elevation: 0,
+        title: const Text(
+          'TestPage',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+      ),
+      drawer: CustomDrawer(
+        indexClicked: 1,
       ),
       body: ListView(
         padding: EdgeInsets.all(16),
@@ -90,13 +37,14 @@ class _TestPageState extends State<TestPage> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 8),
-          if (itemCount > 0)
+          if (testController.itemCount > 0)
             ListView.builder(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
-              itemCount: itemCount,
+              itemCount: testController.itemCount,
               itemBuilder: (BuildContext context, int index) {
-                return Text(coreController.devices![index].toString());
+                return Text(
+                    testController.coreController.devices![index].toString());
               },
             )
           else
@@ -108,17 +56,12 @@ class _TestPageState extends State<TestPage> {
           ),
           SizedBox(height: 8),
           Text(
-            "Nearest is: ${coreController.nearestDevice.toString() ?? 'Not available'}",
+            "Nearest is: ${testController.coreController.nearestDevice ?? 'Not available'}",
             style: TextStyle(fontSize: 16),
           ),
           SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: resetConfigurationClicked,
-            child: Text("Reset Configuration"),
-          ),
         ],
       ),
-   
     );
   }
 }

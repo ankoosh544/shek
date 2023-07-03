@@ -6,9 +6,10 @@ import 'package:sofia/logic/controller/auth_controller.dart';
 import 'package:sofia/logic/controller/login_controller.dart';
 import 'package:sofia/pages/command_page.dart';
 import 'package:sofia/pages/profile_page.dart';
+import 'package:sofia/pages/settings_page.dart';
+import 'package:sofia/pages/test_page.dart';
 //import 'package:sofia/logic/controller/profile_controller.dart';
-// import 'package:waiter_app/views/pages/order/order_history_page.dart';
-// import 'package:waiter_app/views/pages/order/take_order_page.dart';
+
 // import 'package:waiter_app/views/pages/profile/profile_page.dart';
 
 // ignore: must_be_immutable
@@ -84,7 +85,7 @@ class CustomDrawer extends GetView {
             indexNumber: 3,
             onTap: () {
               indexClicked = 3;
-              //  Get.off(() => SettingsPage());
+              Get.off(() => SettingsPage());
               (context as Element).markNeedsBuild();
             },
           ),
@@ -99,9 +100,19 @@ class CustomDrawer extends GetView {
             },
           ),
           _drawerItem(
+            icon: Icons.contact_emergency,
+            text: 'Test',
+            indexNumber: 5,
+            onTap: () {
+              indexClicked = 5;
+              Get.off(() => TestPage());
+              (context as Element).markNeedsBuild();
+            },
+          ),
+          _drawerItem(
             icon: Icons.logout,
             text: 'Log out',
-            indexNumber: 5,
+            indexNumber: 6,
             onTap: () {
               authController.doLogout();
               (context as Element).markNeedsBuild();

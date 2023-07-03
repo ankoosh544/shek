@@ -27,18 +27,6 @@ class BLEDevice {
       DateTime.now().difference(lastSampleTimestamp!) <
           Duration(milliseconds: IS_ALIVE_TIMEOUT);
 
-  // double? get avgRxPower {
-  //   if (samples.any((s) => s.txPower != null && s.txPower == MAX_POWER_LEVEL)) {
-  //     var sumRxPower = samples
-  //         .where((s) => s.txPower != null && s.txPower == MAX_POWER_LEVEL)
-  //         .map((s) => s.rxPower!)
-  //         .reduce((a, b) => a + b);
-  //     return sumRxPower / samples.length.toDouble();
-  //   } else {
-  //     return null;
-  //   }
-  // }
-
   double? get avgRxPower {
     var samplesWithTxPower = samples
         .where((s) => s.txPower != null); // && s.txPower == MAX_POWER_LEVEL);
@@ -64,14 +52,6 @@ class BLEDevice {
     }
     return lastSample?.rxPower;
   }
-
-  // double? get lastRxPower {
-  //   var lastSample = samples
-  //       .where((s) => s.txPower != null && s.txPower == MAX_POWER_LEVEL)
-  //       .lastOrNull;
-  //   print("=======================$lastSample");
-  //   return lastSample?.rxPower?.toDouble();
-  // }
 
   @override
   String toString() {

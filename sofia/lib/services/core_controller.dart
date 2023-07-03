@@ -243,7 +243,6 @@ class CoreController implements ICoreController {
 
   void bleService_OnDeviceDisconnected() async {
     try {
-      print("///////////////////BleDevice On Disconnected/////////////");
       _deviceDisconnectedController.add(null);
     } catch (ex) {
       // if (Preferences.get('DevOptions', false) == true) {
@@ -276,22 +275,16 @@ class CoreController implements ICoreController {
     }
     ConnessioneInCorso = true;
 
-    print("===========Line1=========================");
     await connectDeviceAndRead(device);
     if (device != null) {
-       print("===========Line2=========================");
       emitNotifications(device);
     }
 
     if (onNearestDeviceChanged != null) {
-       print("===========Line3=========================");
       _nearestDeviceController.add(device);
     }
-    print("======================$operationMode");
-    print(OperationMode.changeFloorMission);
 
     if (operationMode == OperationMode.changeFloorMission) {
-       print("===========Line4=========================");
       if (bleService.connectedDeviceId != null &&
           bleService.connectedDeviceId.isNotEmpty) {
         await bleService.disconnectToDeviceAsync();
@@ -306,8 +299,6 @@ class CoreController implements ICoreController {
 
     ConnessioneInCorso = false;
   }
-
-
 
   set carFloorNum(int? floorNum) {
     // Set the car floor number.
@@ -327,7 +318,7 @@ class CoreController implements ICoreController {
   @override
   Future<void> startScanningAsync() async {
     isStarted = true;
-   // notificationManager.initialize();
+    // notificationManager.initialize();
     operationMode = OperationMode.deviceScanning;
 
     Timer.periodic(Duration(milliseconds: REFRESH_TIMEOUT), (timer) {
@@ -360,9 +351,8 @@ class CoreController implements ICoreController {
       await bleService.connectToDeviceAsync(nearestDevice!.id);
 
       // invio comando BLE
-      await bleService.sendCommandAsync(IBleService.ESP_SERVICE_GUID,
+      await bleService.sendCommandAsync(IBleService.FLOOR_SERVICE_GUID,
           FLOOR_REQUEST_CHARACTERISTIC_GUID, destinationFloor);
-
     } catch (e) {
       // if (Preferences.get("DevOptions", false) == true) {
       //   await App.current.mainPage
@@ -382,7 +372,6 @@ class CoreController implements ICoreController {
   @override
   Future<void> connectDevice(BLEDevice device) async {
     try {
-      print("===============Alias device:===========$device");
       if (bleService.connectedDeviceId != null) {
         if (device == null) {
           return;
@@ -445,17 +434,17 @@ class CoreController implements ICoreController {
       bleService.onCharacteristicUpdated.listen((event) {});
 
       await bleService.stopCharacteristicWatchAsync(
-          IBleService.ESP_SERVICE_GUID, ESP_EXAMPLE_CHARACTERTISTIC_GUID);
+          IBleService.FLOOR_SERVICE_GUID, FLOOR_REQUEST_CHARACTERISTIC_GUID);
       await bleService.stopCharacteristicWatchAsync(
-          IBleService.ESP_SERVICE_GUID, MISSION_STATUS_CHARACTERISTIC_GUID);
+          IBleService.FLOOR_SERVICE_GUID, MISSION_STATUS_CHARACTERISTIC_GUID);
 
       // Stop monitoring out of service and absence of light from the floor
       await bleService.stopCharacteristicWatchAsync(
-          IBleService.ESP_SERVICE_GUID, OUT_OF_SERVICE_CHARACTERISTIC_GUID);
+          IBleService.FLOOR_SERVICE_GUID, OUT_OF_SERVICE_CHARACTERISTIC_GUID);
 
       // Added cabin movement
       await bleService.stopCharacteristicWatchAsync(
-          IBleService.ESP_SERVICE_GUID, MOVEMENT_DIRECTION_CAR);
+          IBleService.FLOOR_SERVICE_GUID, MOVEMENT_DIRECTION_CAR);
 
       print("*************** Stop watch characteristics ***************");
     } catch (e) {
@@ -499,7 +488,7 @@ class CoreController implements ICoreController {
           Vibration.vibrate();
           // notificationManager.sendNotification(
           //     "Soffia", "Message tells you are near to Elevator");
-         // audioService.beep();
+          // audioService.beep();
           // Future.delayed(const Duration(milliseconds: 100), () {
           //   sendMessage();
           // });
@@ -520,8 +509,8 @@ class CoreController implements ICoreController {
       if (bleService.connectedDeviceId.toString() != "") {
         try {
           await bleService.getValueFromCharacteristicGuid(
-            IBleService.ESP_SERVICE_GUID,
-            ESP_EXAMPLE_CHARACTERTISTIC_GUID,
+            IBleService.FLOOR_SERVICE_GUID,
+            FLOOR_REQUEST_CHARACTERISTIC_GUID,
           );
         } catch (ex) {
           return;
@@ -560,7 +549,7 @@ class CoreController implements ICoreController {
             // await bleService.getValueFromCharacteristicGuid(
             //     IBleService.FLOOR_SERVICE_GUID, characteristic);
             await bleService.getValueFromCharacteristicGuid(
-                IBleService.ESP_SERVICE_GUID, characteristic);
+                IBleService.FLOOR_SERVICE_GUID, characteristic);
           }
         }
         BLECharacteristicEventArgs bl = BLECharacteristicEventArgs(
@@ -573,19 +562,14 @@ class CoreController implements ICoreController {
         }
       }
 
-
-
-
-     
       bleService.onCharacteristicUpdated
-         .listen((BLECharacteristicEventArgs bl){
-            bleServiceOnCharacteristicUpdated(this, bl);
-         });
-
+          .listen((BLECharacteristicEventArgs bl) {
+        bleServiceOnCharacteristicUpdated(this, bl);
+      });
 
       for (final characteristic in Characteristics) {
         await bleService.startCharacteristicWatchAsync(
-            IBleService.ESP_SERVICE_GUID, characteristic);
+            IBleService.FLOOR_SERVICE_GUID, characteristic);
       }
     } catch (ex) {
       // if (Preferences.get("DevOptions", false) == true) {
@@ -601,7 +585,7 @@ class CoreController implements ICoreController {
       Object sender, BLECharacteristicEventArgs e) {
     try {
       switch (e.characteristicGuid) {
-        case ESP_EXAMPLE_CHARACTERTISTIC_GUID:
+        case FLOOR_REQUEST_CHARACTERISTIC_GUID:
           try {
             carFloor = ((e.value?[0]) ?? 0 & 0x3F).toString();
             if (((e.value?[0]) ?? 0 & 0x40) == 0x40) {
@@ -705,5 +689,4 @@ class CoreController implements ICoreController {
     _characteristicUpdatedController.close();
     _deviceDisconnectedController.close();
   }
-
 }
