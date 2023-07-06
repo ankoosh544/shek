@@ -13,6 +13,7 @@ class LoginController extends GetxController {
   String username = '', password = '';
   bool rememberPassword = false;
 
+
   @override
   void onInit() {
     usernameController =

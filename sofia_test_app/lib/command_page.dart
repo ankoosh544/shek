@@ -651,6 +651,8 @@ class _CommandPageState extends State<CommandPage> {
             Container(
               padding: EdgeInsets.all(25),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   isConnected
                       ? Text(

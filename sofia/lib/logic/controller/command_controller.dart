@@ -14,6 +14,7 @@ import 'package:sofia/interfaces/i_nearest_device_service.dart';
 import 'package:sofia/interfaces/i_rides_service.dart';
 import 'package:sofia/models/BLEDevice.dart';
 import 'package:sofia/models/RideSearchParameters.dart';
+import 'package:sofia/services/ble_service.dart';
 
 class CommandController extends GetxController {
   bool isLoading = false;
@@ -24,6 +25,7 @@ class CommandController extends GetxController {
   late ICoreController coreController;
   late INearestDeviceResolver nearestDeviceResolver;
   late IBleService bleService;
+  late BLEService bleServiceClass;
 
   bool luceMancante = false;
   int intervalloMessaggioLuceAssente = 60; // in seconds
@@ -62,6 +64,7 @@ class CommandController extends GetxController {
     ridesService = GetIt.instance<IRidesService>();
     nearestDeviceResolver = GetIt.instance<INearestDeviceResolver>();
     bleService = GetIt.instance<IBleService>();
+    bleServiceClass = GetIt.instance<BLEService>();
 
     nearestDeviceSubscription = coreController.onNearestDeviceChanged
         .listen(coreControllerOnNearestDeviceChanged);
@@ -83,6 +86,7 @@ class CommandController extends GetxController {
       await coreController.startScanningAsync();
     }
 
+  print("*******************${bleServiceClass.connectedDevice?.id}");
     await refresh();
     try {
       await Future.delayed(Duration.zero, () {
@@ -137,7 +141,8 @@ class CommandController extends GetxController {
 
   Future<void> refresh() async {
     print("============CommandPage===RefreshFunction====");
-    // print(coreController.nearestDevice);
+    print("*************Refesh************${bleServiceClass.connectedDevice?.id}");
+    print(coreController.nearestDevice);
     // print(coreController.devices);
     String targetFloor = '';
     if (coreController.devices?.isEmpty ?? false) {
