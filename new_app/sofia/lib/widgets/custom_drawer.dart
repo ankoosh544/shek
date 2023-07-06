@@ -108,16 +108,16 @@ class CustomDrawer extends GetView {
               (context as Element).markNeedsBuild();
             },
           ),
-           _drawerItem(
-            icon: Icons.question_answer,
-            text: 'Test',
-            indexNumber: 6,
-             onTap: () {
-              indexClicked = 6;
-                  Get.off(() => TestPage());
-              (context as Element).markNeedsBuild();
-            },
-          ),
+          //  _drawerItem(
+          //   icon: Icons.question_answer,
+          //   text: 'Test',
+          //   indexNumber: 6,
+          //    onTap: () {
+          //     indexClicked = 6;
+          //         Get.off(() => TestPage());
+          //     (context as Element).markNeedsBuild();
+          //   },
+          // ),
         ],
       ),
     );

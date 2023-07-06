@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sofia/pages/command_page.dart';
 import 'package:sofia/pages/home_page.dart';
+import 'package:sofia/pages/home_page_test.dart';
 import 'package:sofia/services/auth_service.dart';
 
 import 'package:sofia/storage/user_secure_storage.dart';
@@ -13,7 +14,6 @@ class LoginController extends GetxController {
 
   String username = '', password = '';
   bool rememberPassword = false;
-
 
   @override
   void onInit() {
@@ -80,7 +80,7 @@ class LoginController extends GetxController {
 
           loginFormKey.currentState?.save();
           update();
-          Get.off(() => HomePage());
+          Get.off(() => HomePageTest());
         } else {
           isLoading = false;
           update();

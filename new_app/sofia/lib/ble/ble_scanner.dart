@@ -37,28 +37,24 @@ class BleScanner implements ReactiveState<BleScannerState> {
     }, onError: (Object e) => _logMessage('Device scan fails with error: $e'));
     _pushState();
   }
-void startScanWithFilter(bool Function(DiscoveredDevice) filter) {
-  _logMessage('Start ble discovery with filter');
-  _devices.clear();
-  _subscription?.cancel();
-  _subscription = _ble.scanForDevices(withServices: []).listen((device) {
-    if (filter(device)) {
-      final knownDeviceIndex = _devices.indexWhere((d) => d.id == device.id);
-      if (knownDeviceIndex >= 0) {
-        _devices[knownDeviceIndex] = device;
-      } else {
-        _devices.add(device);
-      }
-      _pushState();
-    }
-  }, onError: (Object e) => _logMessage('Device scan fails with error: $e'));
-  _pushState();
-}
 
-
-
-
-
+  // void startScanWithFilter(bool Function(DiscoveredDevice) filter) {
+  //   _logMessage('Start ble discovery with filter');
+  //   _devices.clear();
+  //   _subscription?.cancel();
+  //   _subscription = _ble.scanForDevices(withServices: []).listen((device) {
+  //     if (filter(device)) {
+  //       final knownDeviceIndex = _devices.indexWhere((d) => d.id == device.id);
+  //       if (knownDeviceIndex >= 0) {
+  //         _devices[knownDeviceIndex] = device;
+  //       } else {
+  //         _devices.add(device);
+  //       }
+  //       _pushState();
+  //     }
+  //   }, onError: (Object e) => _logMessage('Device scan fails with error: $e'));
+  //   _pushState();
+  // }
 
   void _pushState() {
     _stateStreamController.add(
