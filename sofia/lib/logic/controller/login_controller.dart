@@ -67,7 +67,6 @@ class LoginController extends GetxController {
         AuthService authService = AuthService();
         var data = await authService.loginAsync(
             usernameController.text, passwordController.text);
-        print("======================================$data");
         if (data != null && rememberPassword) {
           UserSecureStorage.setRememberMe(passwordController.text);
         }

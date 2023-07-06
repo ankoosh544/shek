@@ -3,7 +3,7 @@ import 'package:sofia/enums/direction.dart';
 import 'package:sofia/enums/operation_mode.dart';
 import 'package:sofia/enums/type_mission_status.dart';
 import 'package:sofia/models/BLEDevice.dart';
-import 'package:sofia/models/BLESample.dart';
+
 import 'package:sofia/models/user.dart';
 
 abstract class ICoreController {

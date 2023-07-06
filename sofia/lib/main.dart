@@ -8,6 +8,7 @@ import 'package:sofia/logic/binding/login_binding.dart';
 import 'package:sofia/pages/command_page.dart';
 import 'package:sofia/pages/login_page.dart';
 import 'package:sofia/pages/profile_page.dart';
+import 'package:sofia/pages/settings_page.dart';
 import 'package:sofia/pages/test_page.dart';
 import 'package:sofia/utils/service_locator.dart';
 
@@ -63,7 +64,10 @@ class MyApp extends StatelessWidget {
         GetPage(name: "/CommandPage", page: () => CommandPage()),
         GetPage(name: "/Profile", page: () => ProfilePage()),
         GetPage(name: "/Test", page: () => TestPage()),
-        
+        GetPage(name: "/ProfilePage", page: () => ProfilePage()),
+        GetPage(name: "/CommandPage", page: () => CommandPage()),
+        GetPage(name: "/TestPage", page: () => TestPage()),
+        GetPage(name: "/SettingsPage", page: () => const SettingsPage()),
       ],
     );
   }

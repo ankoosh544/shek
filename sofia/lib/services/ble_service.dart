@@ -106,12 +106,10 @@ class BLEService implements IBleService {
 
   void characteristicValueUpdated(e) {
     if (e.characteristic.value.length > 0) {
-      /* 
-    print('Device: ${this.connectedDeviceId.toString()}');
-    print('CharacteristicGuid: ${e.characteristic.id.toString()}');
-    print('ServiceGuid: ${e.characteristic.service.id.toString()}');
-    print('Value (in HEX): ${e.characteristic.value[0].toRadixString(16)}');
-    */
+      print('Device: ${this.connectedDeviceId.toString()}');
+      print('CharacteristicGuid: ${e.characteristic.id.toString()}');
+      print('ServiceGuid: ${e.characteristic.service.id.toString()}');
+      print('Value (in HEX): ${e.characteristic.value[0].toRadixString(16)}');
 
       var eventArgs = BLECharacteristicEventArgs(
         characteristicGuid: e.characteristic.id.toString(),
@@ -200,7 +198,7 @@ class BLEService implements IBleService {
       flutterBlue.scan(
         timeout: Duration(seconds: 10),
         withServices: [
-          // Guid(IBleService.FLOOR_SERVICE_GUID),
+          Guid(IBleService.FLOOR_SERVICE_GUID),
           Guid(IBleService.CAR_SERVICE_GUID),
           Guid(IBleService.ESP_SERVICE_GUID)
         ],
@@ -213,7 +211,7 @@ class BLEService implements IBleService {
               deviceType: getDeviceType(
                   scanResult.device, scanResult.advertisementData),
               timestamp: DateTime.now(),
-              txPower: scanResult.advertisementData.txPowerLevel!.toDouble(),
+              txPower: scanResult.advertisementData.txPowerLevel?.toDouble(),
               rxPower: scanResult.rssi.toDouble(),
             );
             print(sample);
@@ -595,13 +593,13 @@ class BLEService implements IBleService {
     var manufacturerData = advertisementData.manufacturerData;
     if (manufacturerData.containsKey(0xFF)) {
       var manufacturerDataValue = manufacturerData[0xFF]!;
-      var floorServiceByteArray = hex.decode(IBleService.ESP_SERVICE_GUID);
+      var floorServiceByteArray = hex.decode(IBleService.FLOOR_SERVICE_GUID);
       if (ListEquality().equals(manufacturerDataValue, floorServiceByteArray)) {
-        return BleDeviceType.car;
+        return BleDeviceType.floor;
       }
     }
 
-    return BleDeviceType.esp32;
+    return BleDeviceType.floor;
   }
   // BleDeviceType getDeviceType(
   //     BluetoothDevice device, AdvertisementData advertisementData) {

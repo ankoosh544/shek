@@ -125,8 +125,6 @@ class CommandController extends GetxController {
             coreController.onMissionStatusChanged
                 .listen(coreControllerOnMissionStatusChanged);
           }
-        } else {
-          print('coreController is not initialized');
         }
         // coreController.onNearestDeviceChanged.listen(coreControllerOnNearestDeviceChanged);
         // coreController.onDeviceDisconnected.listen(coreControllerOnDeviceDisconnected);
@@ -284,7 +282,6 @@ class CommandController extends GetxController {
   }
 
   void coreControllerOnDeviceDisconnected(void _) async {
-    print("Coming to disconnected Eventhandler");
     await refresh();
   }
 
@@ -309,5 +306,4 @@ class CommandController extends GetxController {
       }
     } catch (ex) {}
   }
-
 }

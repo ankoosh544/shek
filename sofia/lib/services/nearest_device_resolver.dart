@@ -37,14 +37,12 @@ class NearestDeviceResolver implements INearestDeviceResolver {
   @override
   void addSample(BLESample sample) {
     var device = findDevice(sample);
-    print(device);
     device.samples.enqueue(sample);
     refreshNearestDevice(sample.timestamp);
   }
 
   @override
   void refreshNearestDevice(DateTime timestamp) {
-    print("==========Refresh NearestDevice=====================");
     clearUnreachableDevices(
         timestamp.subtract(Duration(milliseconds: UNREACHABLE_DEVICE_TIMEOUT)));
     var currentNearestDevice =
@@ -83,7 +81,8 @@ class NearestDeviceResolver implements INearestDeviceResolver {
           alias: sample.alias,
         );
         devices.add(newDevice);
-        print("***************ALL DEVICES**********$devices");
+        print(
+            "***************findDevice in nearestDeviceResolver**********$devices");
         return newDevice;
       },
     );
@@ -144,8 +143,7 @@ class NearestDeviceResolver implements INearestDeviceResolver {
       return true;
     }
 
-    var delay =
-        currentStampleTimestamp.difference(nearestDeviceAssignTimestamp!);
+    var delay = currentStampleTimestamp.difference(currentStampleTimestamp);
     return delay.inMilliseconds >= NEAREST_DEVICE_TIMEOUT;
   }
 

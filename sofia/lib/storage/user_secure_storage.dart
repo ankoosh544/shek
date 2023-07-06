@@ -15,33 +15,6 @@ class UserSecureStorage {
   static const _keyMenuItems = 'menuItems';
   static const _keyProfile = 'profile';
 
-  //Token
-  // static Future setToken(String token) async =>
-  //     await _storage.write(key: _keyToken, value: token);
-
-  // static Future<String?> getToken() async {
-  //   var token = await _storage.read(key: _keyToken);
-  //   return token;
-  // }
-
-  //setWaiterID
-  // static Future setWaiterID(String token) async =>
-  //     await _storage.write(key: _keyWaiter, value: token);
-
-  // static Future<String?> getWaiterID() async {
-  //   var waiterID = await _storage.read(key: _keyWaiter);
-  //   return waiterID;
-  // }
-
-  //setRestaurantId
-  // static Future setRestaurantId(String token) async =>
-  //     await _storage.write(key: _keyRestaurantId, value: token);
-
-  // static Future<String?> getRestaurantId() async {
-  //   var restaurantId = await _storage.read(key: _keyRestaurantId);
-  //   return restaurantId;
-  // }
-
 //Email
   static Future setEmail(String email) async =>
       await _storage.write(key: _keyEmail, value: email);
