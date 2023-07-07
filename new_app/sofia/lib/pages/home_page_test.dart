@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sofia/ble/ble_device_connector.dart';
+import 'package:sofia/ble/ble_scanner.dart';
 
 class HomePageTest extends StatefulWidget {
   @override
@@ -17,6 +19,23 @@ class _HomePageState extends State<HomePageTest> {
   final _devices = [];
   StreamSubscription<DiscoveredDevice>? _scanSubscription;
 
+  late BleDeviceConnector bleDeviceConnector;
+  late BleScanner bleScanner;
+
+
+  @override
+  void initState() {
+    bleDeviceConnector =BleDeviceConnector(ble: _ble, logMessage:(message) {
+      
+    },);
+    bleScanner =BleScanner(ble: _ble, logMessage:(message) {
+      
+    },);
+    // TODO: implement initState
+    super.initState();
+  
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,12 +48,12 @@ class _HomePageState extends State<HomePageTest> {
           children: [
             ElevatedButton(
               child: Text('Scan'),
-              onPressed: _isScanning ? null : _startScan,
+              onPressed: _isScanning ? null : startScan,
             ),
-            ElevatedButton(
-              child: Text('Connect'),
-              onPressed: _isScanning ? null : _connectToDevice,
-            ),
+            // ElevatedButton(
+            //   child: Text('Connect'),
+            //   onPressed: _isScanning ? null : _connectToDevice,
+            // ),
             ElevatedButton(
               child: Text('Disconnect'),
               onPressed: _isScanning ? null : _disconnectFromDevice,
@@ -48,6 +67,26 @@ class _HomePageState extends State<HomePageTest> {
       ),
     );
   }
+
+void startScan() async{
+  bleScanner.startScan([Uuid.parse(serviceGuid)]);
+  bleScanner.state.listen((event) async {
+    print( event.discoveredDevices.length);
+   
+    print(event.toString());
+  //   if(!event.scanIsInProgress){
+  //  final device = event.discoveredDevices.firstWhere((element) => element.serviceUuids.first.toString() == serviceGuid);
+  // await  bleDeviceConnector.connect(device.id);
+  //  bleDeviceConnector.state.where((event) => event.deviceId == device.id).listen((event) {
+  //   print('Psk : ${device.name}: ${event.connectionState.toString()}'); 
+  //   });
+  //   }else{
+  //     print('Psk scanning');
+  //   }
+  });
+  
+}
+
 
   Future<void> _startScan() async {
     bool goForIt = false;
@@ -75,7 +114,8 @@ class _HomePageState extends State<HomePageTest> {
             _ble.scanForDevices(withServices: [serviceUuid]).listen((device) {
           // Handle discovered devices here
           print('Discovered device: ${device.name} (${device.id})');
-          _connectToDevice(device.id);
+          //_connectToDevice(device.id);
+          bleDeviceConnector.connect(device.id);
           _devices.add(device.name);
         });
       } catch (e) {
@@ -84,48 +124,24 @@ class _HomePageState extends State<HomePageTest> {
     } else {}
   }
 
-  void _connectToDevice(_deviceId) {
-    // _ble.connectToDevice(
-    //   id: _deviceId,
-    //   servicesWithCharacteristicsToDiscover: {serviceGuid},
-    //   connectionTimeout: const Duration(seconds: 2),
-    // )
-    //     .listen((connectionState) {
-    //   if (connectionState.connectionState == DeviceConnectionState.connected) {
-    //     send the data
-    //     final characteristic = QualifiedCharacteristic(serviceId: serviceUuid,
-    //     characteristicId: charId1, deviceId: deviceId);
-
-    //      var response = await flutterReactiveBle.writeCharacteristicWithResponse(characteristic, value: [0x00]);
-    //   }
-    // }, onError: (Object error) {
-    //   // Handle a possible error
-    // });
-    final deviceConnection = _ble.connectToDevice(
-      id: _deviceId,
-      connectionTimeout: const Duration(seconds: 2),
-    );
-
-    await for (final connectionState in deviceConnection) {
-      if (connectionState.connectionState == DeviceConnectionState.connected) {
-        final characteristic = QualifiedCharacteristic(
-          serviceId: serviceUuid,
-          characteristicId: characteristicId,
-          deviceId: _deviceId,
-        );
-
-        await _ble.writeCharacteristicWithResponse(
-          characteristic,
-          value: [0x00],
-        );
-
-        break; // Connected and data sent, exit the loop
-      }
-    }
-  }
+  // void _connectToDevice(String deviceId) {
+   
+  //    _ble.connectToDevice(
+  //     id: deviceId,
+  //     connectionTimeout: const Duration(seconds: 2),
+  //   )
+  //       .listen((connectionStateUpdate) {
+  //         print(connectionStateUpdate.connectionState.toString());
+  //   }, onError: (Object error) {
+  //     print(error.toString());
+  //     // Handle a possible error
+  //   });
+    
+  // }
 
   void _disconnectFromDevice() {
-    // Add your logic to disconnect from the ESP32 device here
+    
+    
   }
 
   void _reconnectToDevice() {
