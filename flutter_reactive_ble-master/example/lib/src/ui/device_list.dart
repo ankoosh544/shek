@@ -49,27 +49,30 @@ class _DeviceList extends StatefulWidget {
 
 class _DeviceListState extends State<_DeviceList> {
   late TextEditingController _uuidController;
+  static const FLOOR_SERVICE_GUID = "6c962546-6011-4e1b-9d8c-05027adb3a01";
+  static const CAR_SERVICE_GUID = "6c962546-6011-4e1b-9d8c-05027adb3a02";
+  final serviceUUIDs = [
+    Uuid.parse('4fafc201-1fb5-459e-8fcc-c5c9c331914b'), // ESP32
+    Uuid.parse(FLOOR_SERVICE_GUID), //FLOOR_SERVICE_GUID
+    //Uuid.parse(CAR_SERVICE_GUID), // CAR_SERVICE_GUID
+  ];
 
   @override
   void initState() {
     super.initState();
     _uuidController = TextEditingController()
       ..addListener(() => setState(() {}));
-      _uuidController.text = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
-      _startScanning().then((value) {
-        Future.delayed(Duration(seconds: 4),(){
- print('=================================================');
+    // _uuidController.text = "";
+    _startScanning().then((value) {
+      Future.delayed(Duration(seconds: 4), () {
+        print('=================================================');
         print(widget.scannerState.discoveredDevices.length);
         print(widget.scannerState.discoveredDevices.first.name);
         print('========================end=========================');
-        });
-       // widget.scannerState.discoveredDevices.sort((a, b) => a.rssi.compareTo(b.rssi));
-       setState(() {
-         
-       });
       });
-
-      
+      // widget.scannerState.discoveredDevices.sort((a, b) => a.rssi.compareTo(b.rssi));
+      setState(() {});
+    });
   }
 
   @override
@@ -93,9 +96,8 @@ class _DeviceListState extends State<_DeviceList> {
     }
   }
 
-  Future<void> _startScanning() async{
-    final text = _uuidController.text;
-    widget.startScan(text.isEmpty ? [] : [Uuid.parse(_uuidController.text)]);
+  Future<void> _startScanning() async {
+    widget.startScan(serviceUUIDs);
   }
 
   @override
@@ -105,54 +107,10 @@ class _DeviceListState extends State<_DeviceList> {
         ),
         body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 16),
-                  const Text('Service UUID (2, 4, 16 bytes):'),
-                  TextField(
-                    controller: _uuidController,
-                    enabled: !widget.scannerState.scanIsInProgress,
-                    decoration: InputDecoration(
-                        errorText:
-                            _uuidController.text.isEmpty || _isValidUuidInput()
-                                ? null
-                                : 'Invalid UUID format'),
-                    autocorrect: false,
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
-                        child: const Text('Scan'),
-                        onPressed: !widget.scannerState.scanIsInProgress &&
-                                _isValidUuidInput()
-                            ? _startScanning
-                            : null,
-                      ),
-                      ElevatedButton(
-                        child: const Text('Stop'),
-                        onPressed: widget.scannerState.scanIsInProgress
-                            ? widget.stopScan
-                            : null,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 8),
             ListView(
               shrinkWrap: true,
               children: [
-                SwitchListTile(
-                  title: const Text("Verbose logging"),
-                  value: widget.verboseLogging,
-                  onChanged: (_) => setState(widget.toggleVerboseLogging),
-                ),
                 ListTile(
                   title: Text(
                     !widget.scannerState.scanIsInProgress
@@ -166,38 +124,43 @@ class _DeviceListState extends State<_DeviceList> {
                         )
                       : null,
                 ),
-                ...widget.scannerState.discoveredDevices
-                    .map(
-                      (device) => ListTile(
-                        title: Text(
-                          device.name.isNotEmpty ? device.name : "Unnamed",
-                        ),
-                        subtitle: Text(
-                          """
+                ...widget.scannerState.discoveredDevices.map(
+                  (device) {
+                    print('%%%%%%%%%%%% ${device.toString()}');
+                    return ListTile(
+                      title: Text(
+                        device.name.isNotEmpty ? device.name : "Unnamed",
+                      ),
+                      subtitle: Text(
+                        """
 ${device.id}
 RSSI: ${device.rssi}
 ${device.connectable}
                           """,
-                        ),
-                        leading: const BluetoothIcon(),
-                        onTap: () async {
-                          widget.stopScan();
-                          await Navigator.push<void>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  DeviceDetailScreen(device: device),
-                            ),
-                          );
-                        },
                       ),
-                    )
-                    .toList(),
-                   ],
+                      leading: const BluetoothIcon(),
+                      onTap: () async {
+                        widget.stopScan();
+                        await Navigator.push<void>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DeviceDetailScreen(device: device),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ).toList(),
+              ],
             ),
-          if (widget.scannerState.discoveredDevices.isNotEmpty) Expanded(child: DeviceInteractionTab(device: widget.scannerState.discoveredDevices.first,)) else Container(),
+            if (widget.scannerState.discoveredDevices.isNotEmpty)
+              Expanded(
+                  child: DeviceInteractionTab(
+                device: widget.scannerState.discoveredDevices.first,
+              ))
+            else
+              Container(),
           ],
-          
         ),
       );
 }
